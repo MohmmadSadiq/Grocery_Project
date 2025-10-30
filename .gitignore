@@ -430,4 +430,6 @@ FodyWeavers.xsd
 # My own personal ignores
 *.drawio.bkp
 *.svg.bkp
+*.png.bkp
+
 
