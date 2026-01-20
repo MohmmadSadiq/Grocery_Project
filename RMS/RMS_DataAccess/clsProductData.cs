@@ -160,5 +160,87 @@ namespace RMS_DataAccess
             }
             return dt;
         }
+
+        public static DataTable GetProductsPaged(int PageNumber, int RowsPerPage)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("GetProductsPaged", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value = PageNumber;
+                    command.Parameters.Add("@RowsPerPage", SqlDbType.Int).Value = RowsPerPage;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
+                }
+            }
+            return dt;
+        }
+
+        public class ProductSearchCriteria
+        {
+            public string SearchText { get; set; } = "";
+            public int? CategoryId { get; set; }
+            public bool? IsActive { get; set; } // Nullable for "All" tab
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+            public string SortBy { get; set; } = "";
+        }
+
+        public static DataTable SearchProductsPages(ProductSearchCriteria searchCriteria)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spProduct_GetAll", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar);
+                    command.Parameters.Add("@CategoryId", SqlDbType.Int);
+                    command.Parameters.Add("@IsActive  ", SqlDbType.Bit );
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int );
+                    command.Parameters.Add("@PageSize  ", SqlDbType.Int );
+                    command.Parameters.Add("@SortBy    ", SqlDbType.NVarChar);
+                   try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
+                }
+            }
+            return dt;
+        }
+
+        /*
+         * CREATE PROCEDURE sp_SearchProductsPages
+    @SearchText NVARCHAR(100) = NULL,
+    @CategoryId INT = NULL,
+    @IsActive   BIT = NULL,
+    @PageNumber INT = 1,
+    @PageSize   INT = 20,
+    @SortBy     NVARCHAR(50) = 'Name'
+         */
+
+
     }
 }

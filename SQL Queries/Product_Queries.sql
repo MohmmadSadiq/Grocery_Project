@@ -121,3 +121,119 @@ BEGIN
 END
 GO
 
+
+-- 1. Add the ImagePath column to the Products table
+-- We check if the column exists first to avoid errors if you run the script twice
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Products' AND COLUMN_NAME = 'ImagePath')
+BEGIN
+    ALTER TABLE Products
+    ADD ImagePath NVARCHAR(MAX);
+END
+GO
+
+-- 2. Update the View to include the new ImagePath column
+-- We use OR ALTER (available in newer SQL versions) or DROP/CREATE logic
+IF OBJECT_ID('ProductView', 'V') IS NOT NULL
+    DROP VIEW ProductView;
+GO
+
+/*
+ProductID
+ProductName
+
+Description
+IsActive]
+ImagePath]
+*/
+
+ALTER VIEW ProductView
+AS
+SELECT 
+    Products.ProductID, 
+    Products.ProductName, 
+    Products.Description, 
+    Products.IsActive, 
+    Products.ReorderLevel, 
+    Products.ImagePath, -- Added ImagePath here
+	Products.CategoryID,
+	Products.BrandID,
+    Categories.CategoryName, 
+    Brands.BrandName, 
+    Companies.CompanyName
+FROM Brands 
+    INNER JOIN Companies ON Brands.CompanyID = Companies.CompanyID 
+    INNER JOIN Products ON Brands.BrandID = Products.BrandID 
+    INNER JOIN Categories ON Products.CategoryID = Categories.CategoryID;
+GO
+
+-- 3. Update the Stored Procedure to select the ImagePath
+IF OBJECT_ID('GetProductsPaged', 'P') IS NOT NULL
+    DROP PROCEDURE GetProductsPaged;
+GO
+
+CREATE PROCEDURE GetProductsPaged
+(
+    @PageNumber INT,
+    @RowsPerPage INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validation for PageNumber
+    IF @PageNumber < 1
+        SET @PageNumber = 1;
+
+    -- Select including ImagePath
+    SELECT 
+        ProductID, 
+        ProductName, 
+        Description, 
+        IsActive, 
+        ReorderLevel, 
+        ImagePath, -- Added ImagePath to the result set
+        CategoryName, 
+        BrandName, 
+        CompanyName
+    FROM ProductView
+    ORDER BY ProductID
+    OFFSET (@PageNumber - 1) * @RowsPerPage ROWS
+    FETCH NEXT @RowsPerPage ROWS ONLY;
+END
+GO
+
+ALTER PROCEDURE sp_SearchProductsPages
+    @SearchText NVARCHAR(100) = NULL,
+    @CategoryId INT = NULL,
+    @IsActive   BIT = NULL,
+    @PageNumber INT = 1,
+    @PageSize   INT = 20,
+    @SortBy     NVARCHAR(50) = 'Name'
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+    -- ÇáÞÑÇÁÉ ãÈÇÔÑÉ ãä ÇáÜ View
+    -- ÅÐÇ ÇÓÊÎÏãÊ ÇáÍá ÇáÃæá (Indexed View)¡ ÃÖÝ (NOEXPAND) ááÊÃßÏ ãä ÇÓÊÎÏÇã ÇáÝåÑÓ Ýí ÈÚÖ äÓÎ SQL
+    SELECT 
+        ProductID,
+        ProductName,
+        CategoryName,
+        BrandName,
+        ReorderLevel,
+        IsActive,
+        ImagePath,
+        COUNT(*) OVER() AS TotalCount
+    FROM ProductView 
+    WHERE 
+        (@IsActive IS NULL OR IsActive = @IsActive)
+        AND (@CategoryId IS NULL OR CategoryID = @CategoryId)
+        AND (@SearchText IS NULL OR (
+            ProductName = @SearchText 
+        ))
+    ORDER BY 
+		CASE WHEN @SortBy = 'ID' THEN ProductID END ASC,
+        CASE WHEN @SortBy = 'Name' THEN ProductName END ASC
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+END

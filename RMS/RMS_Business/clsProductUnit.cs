@@ -74,5 +74,18 @@ namespace RMS_Business
         {
             return clsProductUnitData.GetAllProductUnit();
         }
+
+        public static DataTable GetProductUnitsByProductID(int productId)
+        {
+            return clsProductUnitData.GetProductUnitsByProductID(productId);
+        }
+
+        /// <summary>
+        /// Creates a new ProductUnit instance for adding a new product unit.
+        /// </summary>
+        public static clsProductUnit CreateNew()
+        {
+            return new clsProductUnit();
+        }
     }
 }

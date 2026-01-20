@@ -56,5 +56,13 @@ namespace RMS_Business
         {
             return clsUnitData.GetAllUnit();
         }
+
+        /// <summary>
+        /// Creates a new Unit instance for adding a new unit.
+        /// </summary>
+        public static clsUnit CreateNew()
+        {
+            return new clsUnit();
+        }
     }
 }

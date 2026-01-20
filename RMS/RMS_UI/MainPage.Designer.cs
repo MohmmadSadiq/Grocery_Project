@@ -31,233 +31,221 @@ namespace RMS_UI.Views
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.sidebarPanel = new System.Windows.Forms.Panel();
-            this.btnSettings = new System.Windows.Forms.Button();
-            this.btnReports = new System.Windows.Forms.Button();
-            this.btnProductManagement = new System.Windows.Forms.Button();
-            this.btnProducts = new System.Windows.Forms.Button();
-            this.btnDashboard = new System.Windows.Forms.Button();
-            this.sidebarHeader = new System.Windows.Forms.Panel();
-            this.btnToggleSidebar = new System.Windows.Forms.Button();
-            this.lblSidebarTitle = new System.Windows.Forms.Label();
-            this.contentPanel = new System.Windows.Forms.Panel();
-            this.lblWelcome = new System.Windows.Forms.Label();
-            this.lblSubtitle = new System.Windows.Forms.Label();
-            this.sidebarPanel.SuspendLayout();
-            this.sidebarHeader.SuspendLayout();
-            this.contentPanel.SuspendLayout();
-            this.SuspendLayout();
+            sidebarPanel = new Panel();
+            btnSettings = new Button();
+            btnReports = new Button();
+            btnProducts = new Button();
+            btnDashboard = new Button();
+            sidebarHeader = new Panel();
+            btnToggleSidebar = new Button();
+            lblSidebarTitle = new Label();
+            contentPanel = new Panel();
+            lblSubtitle = new Label();
+            lblWelcome = new Label();
+            sidebarPanel.SuspendLayout();
+            sidebarHeader.SuspendLayout();
+            contentPanel.SuspendLayout();
+            SuspendLayout();
             // 
             // sidebarPanel
             // 
-            this.sidebarPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
-            this.sidebarPanel.Controls.Add(this.btnSettings);
-            this.sidebarPanel.Controls.Add(this.btnReports);
-            this.sidebarPanel.Controls.Add(this.btnProductManagement);
-            this.sidebarPanel.Controls.Add(this.btnProducts);
-            this.sidebarPanel.Controls.Add(this.btnDashboard);
-            this.sidebarPanel.Controls.Add(this.sidebarHeader);
-            this.sidebarPanel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.sidebarPanel.Location = new System.Drawing.Point(0, 0);
-            this.sidebarPanel.Name = "sidebarPanel";
-            this.sidebarPanel.Size = new System.Drawing.Size(260, 610);
-            this.sidebarPanel.TabIndex = 0;
-            // 
-            // sidebarHeader
-            // 
-            this.sidebarHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
-            this.sidebarHeader.Controls.Add(this.btnToggleSidebar);
-            this.sidebarHeader.Controls.Add(this.lblSidebarTitle);
-            this.sidebarHeader.Dock = System.Windows.Forms.DockStyle.Top;
-            this.sidebarHeader.Location = new System.Drawing.Point(0, 0);
-            this.sidebarHeader.Name = "sidebarHeader";
-            this.sidebarHeader.Size = new System.Drawing.Size(260, 80);
-            this.sidebarHeader.TabIndex = 0;
-            // 
-            // btnToggleSidebar
-            // 
-            this.btnToggleSidebar.BackColor = System.Drawing.Color.Transparent;
-            this.btnToggleSidebar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnToggleSidebar.FlatAppearance.BorderSize = 0;
-            this.btnToggleSidebar.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
-            this.btnToggleSidebar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnToggleSidebar.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.btnToggleSidebar.ForeColor = System.Drawing.Color.White;
-            this.btnToggleSidebar.Location = new System.Drawing.Point(210, 20);
-            this.btnToggleSidebar.Name = "btnToggleSidebar";
-            this.btnToggleSidebar.Size = new System.Drawing.Size(40, 40);
-            this.btnToggleSidebar.TabIndex = 1;
-            this.btnToggleSidebar.Text = "☰";
-            this.btnToggleSidebar.UseVisualStyleBackColor = false;
-            // 
-            // lblSidebarTitle
-            // 
-            this.lblSidebarTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblSidebarTitle.Font = new System.Drawing.Font("Segoe UI Semibold", 14F, System.Drawing.FontStyle.Bold);
-            this.lblSidebarTitle.ForeColor = System.Drawing.Color.White;
-            this.lblSidebarTitle.Location = new System.Drawing.Point(0, 0);
-            this.lblSidebarTitle.Name = "lblSidebarTitle";
-            this.lblSidebarTitle.Padding = new System.Windows.Forms.Padding(20, 0, 50, 0);
-            this.lblSidebarTitle.Size = new System.Drawing.Size(260, 80);
-            this.lblSidebarTitle.TabIndex = 0;
-            this.lblSidebarTitle.Text = "📦 RMS Menu";
-            this.lblSidebarTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // btnDashboard
-            // 
-            this.btnDashboard.BackColor = System.Drawing.Color.Transparent;
-            this.btnDashboard.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnDashboard.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnDashboard.FlatAppearance.BorderSize = 0;
-            this.btnDashboard.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
-            this.btnDashboard.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnDashboard.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.btnDashboard.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.btnDashboard.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnDashboard.Location = new System.Drawing.Point(0, 80);
-            this.btnDashboard.Name = "btnDashboard";
-            this.btnDashboard.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
-            this.btnDashboard.Size = new System.Drawing.Size(260, 50);
-            this.btnDashboard.TabIndex = 1;
-            this.btnDashboard.Tag = "🏠";
-            this.btnDashboard.Text = "🏠  Dashboard";
-            this.btnDashboard.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnDashboard.UseVisualStyleBackColor = false;
-            // 
-            // btnProducts
-            // 
-            this.btnProducts.BackColor = System.Drawing.Color.Transparent;
-            this.btnProducts.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnProducts.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnProducts.FlatAppearance.BorderSize = 0;
-            this.btnProducts.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
-            this.btnProducts.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnProducts.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.btnProducts.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.btnProducts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnProducts.Location = new System.Drawing.Point(0, 130);
-            this.btnProducts.Name = "btnProducts";
-            this.btnProducts.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
-            this.btnProducts.Size = new System.Drawing.Size(260, 50);
-            this.btnProducts.TabIndex = 2;
-            this.btnProducts.Tag = "📦";
-            this.btnProducts.Text = "📦  Products";
-            this.btnProducts.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnProducts.UseVisualStyleBackColor = false;
-            // 
-            // btnProductManagement
-            // 
-            this.btnProductManagement.BackColor = System.Drawing.Color.Transparent;
-            this.btnProductManagement.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnProductManagement.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnProductManagement.FlatAppearance.BorderSize = 0;
-            this.btnProductManagement.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
-            this.btnProductManagement.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnProductManagement.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.btnProductManagement.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.btnProductManagement.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnProductManagement.Location = new System.Drawing.Point(0, 180);
-            this.btnProductManagement.Name = "btnProductManagement";
-            this.btnProductManagement.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
-            this.btnProductManagement.Size = new System.Drawing.Size(260, 50);
-            this.btnProductManagement.TabIndex = 3;
-            this.btnProductManagement.Tag = "🛒";
-            this.btnProductManagement.Text = "🛒  Product Management System";
-            this.btnProductManagement.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnProductManagement.UseVisualStyleBackColor = false;
-            // 
-            // btnReports
-            // 
-            this.btnReports.BackColor = System.Drawing.Color.Transparent;
-            this.btnReports.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnReports.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnReports.FlatAppearance.BorderSize = 0;
-            this.btnReports.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
-            this.btnReports.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnReports.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.btnReports.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.btnReports.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnReports.Location = new System.Drawing.Point(0, 230);
-            this.btnReports.Name = "btnReports";
-            this.btnReports.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
-            this.btnReports.Size = new System.Drawing.Size(260, 50);
-            this.btnReports.TabIndex = 4;
-            this.btnReports.Tag = "📊";
-            this.btnReports.Text = "📊  Reports";
-            this.btnReports.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnReports.UseVisualStyleBackColor = false;
+            sidebarPanel.BackColor = Color.FromArgb(248, 250, 252);
+            sidebarPanel.Controls.Add(btnSettings);
+            sidebarPanel.Controls.Add(btnReports);
+            sidebarPanel.Controls.Add(btnProducts);
+            sidebarPanel.Controls.Add(btnDashboard);
+            sidebarPanel.Controls.Add(sidebarHeader);
+            sidebarPanel.Dock = DockStyle.Left;
+            sidebarPanel.Location = new Point(0, 0);
+            sidebarPanel.Margin = new Padding(2);
+            sidebarPanel.Name = "sidebarPanel";
+            sidebarPanel.Size = new Size(260, 683);
+            sidebarPanel.TabIndex = 0;
             // 
             // btnSettings
             // 
-            this.btnSettings.BackColor = System.Drawing.Color.Transparent;
-            this.btnSettings.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnSettings.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnSettings.FlatAppearance.BorderSize = 0;
-            this.btnSettings.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
-            this.btnSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSettings.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.btnSettings.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.btnSettings.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnSettings.Location = new System.Drawing.Point(0, 280);
-            this.btnSettings.Name = "btnSettings";
-            this.btnSettings.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
-            this.btnSettings.Size = new System.Drawing.Size(260, 50);
-            this.btnSettings.TabIndex = 5;
-            this.btnSettings.Tag = "⚙️";
-            this.btnSettings.Text = "⚙️  Settings";
-            this.btnSettings.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnSettings.UseVisualStyleBackColor = false;
+            btnSettings.BackColor = Color.Transparent;
+            btnSettings.Cursor = Cursors.Hand;
+            btnSettings.Dock = DockStyle.Top;
+            btnSettings.FlatAppearance.BorderSize = 0;
+            btnSettings.FlatAppearance.MouseOverBackColor = Color.FromArgb(219, 234, 254);
+            btnSettings.FlatStyle = FlatStyle.Flat;
+            btnSettings.Font = new Font("Segoe UI", 15.75F);
+            btnSettings.ForeColor = Color.FromArgb(51, 65, 85);
+            btnSettings.ImageAlign = ContentAlignment.MiddleLeft;
+            btnSettings.Location = new Point(0, 280);
+            btnSettings.Margin = new Padding(2);
+            btnSettings.Name = "btnSettings";
+            btnSettings.Padding = new Padding(16, 0, 0, 0);
+            btnSettings.Size = new Size(260, 60);
+            btnSettings.TabIndex = 5;
+            btnSettings.Tag = "⚙️";
+            btnSettings.Text = "⚙️  Settings";
+            btnSettings.TextAlign = ContentAlignment.MiddleLeft;
+            btnSettings.UseVisualStyleBackColor = false;
+            // 
+            // btnReports
+            // 
+            btnReports.BackColor = Color.Transparent;
+            btnReports.Cursor = Cursors.Hand;
+            btnReports.Dock = DockStyle.Top;
+            btnReports.FlatAppearance.BorderSize = 0;
+            btnReports.FlatAppearance.MouseOverBackColor = Color.FromArgb(219, 234, 254);
+            btnReports.FlatStyle = FlatStyle.Flat;
+            btnReports.Font = new Font("Segoe UI", 15.75F);
+            btnReports.ForeColor = Color.FromArgb(51, 65, 85);
+            btnReports.ImageAlign = ContentAlignment.MiddleLeft;
+            btnReports.Location = new Point(0, 220);
+            btnReports.Margin = new Padding(2);
+            btnReports.Name = "btnReports";
+            btnReports.Padding = new Padding(16, 0, 0, 0);
+            btnReports.Size = new Size(260, 60);
+            btnReports.TabIndex = 4;
+            btnReports.Tag = "📊";
+            btnReports.Text = "📊  Reports";
+            btnReports.TextAlign = ContentAlignment.MiddleLeft;
+            btnReports.UseVisualStyleBackColor = false;
+            // 
+            // btnProducts
+            // 
+            btnProducts.BackColor = Color.Transparent;
+            btnProducts.Cursor = Cursors.Hand;
+            btnProducts.Dock = DockStyle.Top;
+            btnProducts.FlatAppearance.BorderSize = 0;
+            btnProducts.FlatAppearance.MouseOverBackColor = Color.FromArgb(219, 234, 254);
+            btnProducts.FlatStyle = FlatStyle.Flat;
+            btnProducts.Font = new Font("Segoe UI", 15.75F);
+            btnProducts.ForeColor = Color.FromArgb(51, 65, 85);
+            btnProducts.ImageAlign = ContentAlignment.MiddleLeft;
+            btnProducts.Location = new Point(0, 160);
+            btnProducts.Margin = new Padding(2);
+            btnProducts.Name = "btnProducts";
+            btnProducts.Padding = new Padding(16, 0, 0, 0);
+            btnProducts.Size = new Size(260, 60);
+            btnProducts.TabIndex = 2;
+            btnProducts.Tag = "📦";
+            btnProducts.Text = "📦  Products";
+            btnProducts.TextAlign = ContentAlignment.MiddleLeft;
+            btnProducts.UseVisualStyleBackColor = false;
+            // 
+            // btnDashboard
+            // 
+            btnDashboard.BackColor = Color.Transparent;
+            btnDashboard.Cursor = Cursors.Hand;
+            btnDashboard.Dock = DockStyle.Top;
+            btnDashboard.FlatAppearance.BorderSize = 0;
+            btnDashboard.FlatAppearance.MouseOverBackColor = Color.FromArgb(219, 234, 254);
+            btnDashboard.FlatStyle = FlatStyle.Flat;
+            btnDashboard.Font = new Font("Segoe UI", 15.75F);
+            btnDashboard.ForeColor = Color.FromArgb(51, 65, 85);
+            btnDashboard.ImageAlign = ContentAlignment.MiddleLeft;
+            btnDashboard.Location = new Point(0, 100);
+            btnDashboard.Margin = new Padding(2);
+            btnDashboard.Name = "btnDashboard";
+            btnDashboard.Padding = new Padding(16, 0, 0, 0);
+            btnDashboard.Size = new Size(260, 60);
+            btnDashboard.TabIndex = 1;
+            btnDashboard.Tag = "🏠";
+            btnDashboard.Text = "🏠  Dashboard";
+            btnDashboard.TextAlign = ContentAlignment.MiddleLeft;
+            btnDashboard.UseVisualStyleBackColor = false;
+            // 
+            // sidebarHeader
+            // 
+            sidebarHeader.BackColor = Color.FromArgb(59, 130, 246);
+            sidebarHeader.Controls.Add(btnToggleSidebar);
+            sidebarHeader.Controls.Add(lblSidebarTitle);
+            sidebarHeader.Dock = DockStyle.Top;
+            sidebarHeader.Font = new Font("Segoe UI", 15.75F);
+            sidebarHeader.Location = new Point(0, 0);
+            sidebarHeader.Margin = new Padding(2);
+            sidebarHeader.Name = "sidebarHeader";
+            sidebarHeader.Size = new Size(260, 100);
+            sidebarHeader.TabIndex = 0;
+            // 
+            // btnToggleSidebar
+            // 
+            btnToggleSidebar.BackColor = Color.Transparent;
+            btnToggleSidebar.Cursor = Cursors.Hand;
+            btnToggleSidebar.FlatAppearance.BorderSize = 0;
+            btnToggleSidebar.FlatAppearance.MouseOverBackColor = Color.FromArgb(37, 99, 235);
+            btnToggleSidebar.FlatStyle = FlatStyle.Flat;
+            btnToggleSidebar.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            btnToggleSidebar.ForeColor = Color.White;
+            btnToggleSidebar.Location = new Point(207, 28);
+            btnToggleSidebar.Margin = new Padding(2);
+            btnToggleSidebar.Name = "btnToggleSidebar";
+            btnToggleSidebar.Size = new Size(31, 30);
+            btnToggleSidebar.TabIndex = 1;
+            btnToggleSidebar.Text = "☰";
+            btnToggleSidebar.UseVisualStyleBackColor = false;
+            // 
+            // lblSidebarTitle
+            // 
+            lblSidebarTitle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lblSidebarTitle.Font = new Font("Segoe UI", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblSidebarTitle.ForeColor = Color.White;
+            lblSidebarTitle.Location = new Point(0, 13);
+            lblSidebarTitle.Margin = new Padding(2, 0, 2, 0);
+            lblSidebarTitle.Name = "lblSidebarTitle";
+            lblSidebarTitle.Padding = new Padding(16, 0, 39, 0);
+            lblSidebarTitle.Size = new Size(260, 60);
+            lblSidebarTitle.TabIndex = 0;
+            lblSidebarTitle.Text = "📦 RMS Menu";
+            lblSidebarTitle.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // contentPanel
             // 
-            this.contentPanel.BackColor = System.Drawing.Color.White;
-            this.contentPanel.Controls.Add(this.lblSubtitle);
-            this.contentPanel.Controls.Add(this.lblWelcome);
-            this.contentPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.contentPanel.Location = new System.Drawing.Point(260, 0);
-            this.contentPanel.Name = "contentPanel";
-            this.contentPanel.Padding = new System.Windows.Forms.Padding(40);
-            this.contentPanel.Size = new System.Drawing.Size(800, 610);
-            this.contentPanel.TabIndex = 1;
-            // 
-            // lblWelcome
-            // 
-            this.lblWelcome.AutoSize = true;
-            this.lblWelcome.Font = new System.Drawing.Font("Segoe UI Semibold", 28F, System.Drawing.FontStyle.Bold);
-            this.lblWelcome.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
-            this.lblWelcome.Location = new System.Drawing.Point(40, 60);
-            this.lblWelcome.Name = "lblWelcome";
-            this.lblWelcome.Size = new System.Drawing.Size(500, 51);
-            this.lblWelcome.TabIndex = 0;
-            this.lblWelcome.Text = "Welcome to RMS";
+            contentPanel.BackColor = Color.White;
+            contentPanel.Controls.Add(lblSubtitle);
+            contentPanel.Controls.Add(lblWelcome);
+            contentPanel.Dock = DockStyle.Fill;
+            contentPanel.Location = new Point(260, 0);
+            contentPanel.Margin = new Padding(2);
+            contentPanel.Name = "contentPanel";
+            contentPanel.Padding = new Padding(31, 30, 31, 30);
+            contentPanel.Size = new Size(1242, 683);
+            contentPanel.TabIndex = 1;
             // 
             // lblSubtitle
             // 
-            this.lblSubtitle.AutoSize = true;
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 12F);
-            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
-            this.lblSubtitle.Location = new System.Drawing.Point(40, 120);
-            this.lblSubtitle.Name = "lblSubtitle";
-            this.lblSubtitle.Size = new System.Drawing.Size(380, 21);
-            this.lblSubtitle.TabIndex = 1;
-            this.lblSubtitle.Text = "Select an option from the menu to get started";
+            lblSubtitle.AutoSize = true;
+            lblSubtitle.Font = new Font("Segoe UI", 12F);
+            lblSubtitle.ForeColor = Color.FromArgb(100, 116, 139);
+            lblSubtitle.Location = new Point(31, 90);
+            lblSubtitle.Margin = new Padding(2, 0, 2, 0);
+            lblSubtitle.Name = "lblSubtitle";
+            lblSubtitle.Size = new Size(325, 21);
+            lblSubtitle.TabIndex = 1;
+            lblSubtitle.Text = "Select an option from the menu to get started";
+            // 
+            // lblWelcome
+            // 
+            lblWelcome.AutoSize = true;
+            lblWelcome.Font = new Font("Segoe UI Semibold", 28F, FontStyle.Bold);
+            lblWelcome.ForeColor = Color.FromArgb(30, 41, 59);
+            lblWelcome.Location = new Point(31, 45);
+            lblWelcome.Margin = new Padding(2, 0, 2, 0);
+            lblWelcome.Name = "lblWelcome";
+            lblWelcome.Size = new Size(320, 51);
+            lblWelcome.TabIndex = 0;
+            lblWelcome.Text = "Welcome to RMS";
             // 
             // MainPage
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
-            this.Controls.Add(this.contentPanel);
-            this.Controls.Add(this.sidebarPanel);
-            this.Name = "MainPage";
-            this.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.Size = new System.Drawing.Size(1060, 610);
-            this.sidebarPanel.ResumeLayout(false);
-            this.sidebarHeader.ResumeLayout(false);
-            this.contentPanel.ResumeLayout(false);
-            this.contentPanel.PerformLayout();
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.White;
+            Controls.Add(contentPanel);
+            Controls.Add(sidebarPanel);
+            Margin = new Padding(2);
+            Name = "MainPage";
+            Size = new Size(1502, 683);
+            sidebarPanel.ResumeLayout(false);
+            sidebarHeader.ResumeLayout(false);
+            contentPanel.ResumeLayout(false);
+            contentPanel.PerformLayout();
+            ResumeLayout(false);
         }
 
         #endregion
@@ -268,7 +256,6 @@ namespace RMS_UI.Views
         private System.Windows.Forms.Label lblSidebarTitle;
         private System.Windows.Forms.Button btnDashboard;
         private System.Windows.Forms.Button btnProducts;
-        private System.Windows.Forms.Button btnProductManagement;
         private System.Windows.Forms.Button btnReports;
         private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Panel contentPanel;

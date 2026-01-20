@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using RMS_UI.Controls;
 using RMS_UI.Utilities;
 
 namespace RMS_UI.Views
@@ -34,14 +35,12 @@ namespace RMS_UI.Views
             // Store original full texts
             _buttonFullTexts[btnDashboard] = "🏠  Dashboard";
             _buttonFullTexts[btnProducts] = "📦  Products";
-            _buttonFullTexts[btnProductManagement] = "🛒  Product Management System";
             _buttonFullTexts[btnReports] = "📊  Reports";
             _buttonFullTexts[btnSettings] = "⚙️  Settings";
 
             // Wire up button click events
             btnDashboard.Click += (s, e) => OnMenuItemClicked("Dashboard");
             btnProducts.Click += (s, e) => OnMenuItemClicked("Products");
-            btnProductManagement.Click += (s, e) => OnMenuItemClicked("Product Management System");
             btnReports.Click += (s, e) => OnMenuItemClicked("Reports");
             btnSettings.Click += (s, e) => OnMenuItemClicked("Settings");
             btnToggleSidebar.Click += (s, e) => ToggleSidebar();
@@ -82,7 +81,7 @@ namespace RMS_UI.Views
 
         private void UpdateButtonsAlignment()
         {
-            var buttons = new[] { btnDashboard, btnProducts, btnProductManagement, btnReports, btnSettings };
+            var buttons = new[] { btnDashboard, btnProducts, btnReports, btnSettings };
             
             foreach (var btn in buttons)
             {
@@ -95,7 +94,7 @@ namespace RMS_UI.Views
                     }
                     btn.TextAlign = ContentAlignment.MiddleLeft;
                     btn.Padding = new Padding(20, 0, 0, 0);
-                    btn.Font = new Font("Segoe UI", 11F);
+                    btn.Font = new Font("Segoe UI", 16F);
                 }
                 else
                 {
@@ -115,13 +114,13 @@ namespace RMS_UI.Views
             
             if (_isSidebarExpanded)
             {
-                btnToggleSidebar.Location = new Point(210, 20);
+                btnToggleSidebar.Location = new Point(207, 28);
                 btnToggleSidebar.Text = "☰";
             }
             else
             {
                 // Center the button in collapsed sidebar
-                btnToggleSidebar.Location = new Point(15, 20);
+                btnToggleSidebar.Location = new Point(20, 28);
                 btnToggleSidebar.Text = "☰";
             }
         }
@@ -134,12 +133,23 @@ namespace RMS_UI.Views
 
         private void OnMenuItemClicked(string menuItem)
         {
-            MessageBox.Show(
-                $"تم الضغط على: {menuItem}",
-                "Navigation",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+            switch (menuItem)
+            {
+                case "Products":
+                    LoadContent(new ProductsControl());
+                    break;
+                case "Dashboard":
+                    ShowWelcome();
+                    break;
+                default:
+                    MessageBox.Show(
+                        $"{menuItem} - Coming Soon",
+                        "Navigation",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+                    break;
+            }
         }
 
         public void ApplyTheme()

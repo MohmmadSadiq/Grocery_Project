@@ -21,6 +21,10 @@ namespace RMS_Business
             CreatedByUserID = null;
             Mode = enMode.AddNew;
         }
+        public static clsCategory CreateNew()
+        {
+            return new clsCategory();
+        }
         public bool Save()
         {
             switch (Mode)

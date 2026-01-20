@@ -439,6 +439,11 @@ CREATE TABLE Products (
 CREATE NONCLUSTERED INDEX IX_Products_ProductName ON Products(ProductName);
 CREATE NONCLUSTERED INDEX IX_Products_BrandID ON Products(BrandID);
 
+CREATE NONCLUSTERED INDEX IX_Products_CategoryID ON Products(CategoryID);
+
+-- تسريع الفلترة والبحث (Where Clause)
+CREATE NONCLUSTERED INDEX IX_Products_IsActive ON Products(IsActive);
+
 -- =============================================
 -- 1. Table: Units
 -- =============================================

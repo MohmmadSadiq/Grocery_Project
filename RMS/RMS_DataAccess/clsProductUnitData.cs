@@ -164,5 +164,43 @@ namespace RMS_DataAccess
             }
             return dt;
         }
+
+        public static DataTable GetProductUnitsByProductID(int ProductID)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spProductUnit_GetByProductID", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@ProductID", ProductID);
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Log error - If stored procedure doesn't exist, use GetAllProductUnit and filter
+                        dt = GetAllProductUnit();
+                        // Filter by ProductID
+                        var filteredRows = dt.Select($"ProductID = {ProductID}");
+                        if (filteredRows.Length > 0)
+                        {
+                            dt = filteredRows.CopyToDataTable();
+                        }
+                        else
+                        {
+                            dt.Clear();
+                        }
+                    }
+                }
+            }
+            return dt;
+        }
     }
 }

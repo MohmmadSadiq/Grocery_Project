@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using RMS_DataAccess;
+using static RMS_DataAccess.clsProductData;
 namespace RMS_Business
 {
     public class clsProduct
@@ -70,6 +71,18 @@ namespace RMS_Business
         public static DataTable GetAllProduct()
         {
             return clsProductData.GetAllProduct();
+        }
+        public static DataTable SearchProductsPages(ProductSearchCriteria searchCriteria)
+        {
+            return clsProductData.SearchProductsPages(searchCriteria);
+        }
+
+        /// <summary>
+        /// Creates a new Product instance for adding a new product.
+        /// </summary>
+        public static clsProduct CreateNew()
+        {
+            return new clsProduct();
         }
     }
 }

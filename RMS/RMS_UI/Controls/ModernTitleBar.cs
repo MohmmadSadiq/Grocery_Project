@@ -7,17 +7,8 @@ using RMS_UI.Utilities;
 
 namespace RMS_UI.Controls
 {
-    public class ModernTitleBar : Panel
+    public partial class ModernTitleBar : Panel
     {
-        // Controls
-        private Panel _logoPanel = null!;
-        private Label _titleLabel = null!;
-        private Panel _buttonPanel = null!;
-        private ModernTitleBarButton _closeButton = null!;
-        private ModernTitleBarButton _maximizeButton = null!;
-        private ModernTitleBarButton _minimizeButton = null!;
-        private ModernTitleBarButton _themeToggleButton = null!;
-
         // Properties
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Title
@@ -46,97 +37,44 @@ namespace RMS_UI.Controls
         public ModernTitleBar()
         {
             InitializeComponent();
+            EnableDragging(this);
+            EnableDragging(_titleLabel);
+            EnableDragging(_logoPanel);
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
         }
 
-        private void InitializeComponent()
+        #region Designer Event Handlers
+        private void ModernTitleBar_Resize(object sender, EventArgs e)
         {
-            this.Height = 70;
-            this.Dock = DockStyle.Top;
-            this.Padding = new Padding(15, 0, 10, 0);
-
-            // Logo Panel
-            _logoPanel = new Panel
-            {
-                Size = new Size(45, 45),
-                BackgroundImageLayout = ImageLayout.Zoom,
-                Cursor = Cursors.Default
-            };
-
-            // Title Label
-            _titleLabel = new Label
-            {
-                Text = "Application",
-                Font = new Font("Segoe UI Semibold", 16F, FontStyle.Regular),
-                AutoSize = true,
-                Cursor = Cursors.Default
-            };
-
-            // Button Panel (right side)
-            _buttonPanel = new Panel
-            {
-                Dock = DockStyle.Right,
-                Width = 180,
-                Padding = new Padding(0)
-            };
-
-            // Theme Toggle Button
-            _themeToggleButton = new ModernTitleBarButton
-            {
-                ButtonType = TitleBarButtonType.ThemeToggle,
-                Size = new Size(45, 35),
-                Dock = DockStyle.Right
-            };
-            _themeToggleButton.Click += (s, e) => ThemeToggleClicked?.Invoke(this, EventArgs.Empty);
-
-            // Minimize Button
-            _minimizeButton = new ModernTitleBarButton
-            {
-                ButtonType = TitleBarButtonType.Minimize,
-                Size = new Size(45, 35),
-                Dock = DockStyle.Right
-            };
-            _minimizeButton.Click += (s, e) => MinimizeClicked?.Invoke(this, EventArgs.Empty);
-
-            // Maximize Button
-            _maximizeButton = new ModernTitleBarButton
-            {
-                ButtonType = TitleBarButtonType.Maximize,
-                Size = new Size(45, 35),
-                Dock = DockStyle.Right
-            };
-            _maximizeButton.Click += (s, e) => MaximizeClicked?.Invoke(this, EventArgs.Empty);
-
-            // Close Button
-            _closeButton = new ModernTitleBarButton
-            {
-                ButtonType = TitleBarButtonType.Close,
-                Size = new Size(45, 35),
-                Dock = DockStyle.Right
-            };
-            _closeButton.Click += (s, e) => CloseClicked?.Invoke(this, EventArgs.Empty);
-
-            // Add buttons to button panel (reverse order due to Dock.Right)
-            _buttonPanel.Controls.Add(_themeToggleButton);
-            _buttonPanel.Controls.Add(_minimizeButton);
-            _buttonPanel.Controls.Add(_maximizeButton);
-            _buttonPanel.Controls.Add(_closeButton);
-
-            // Add controls to title bar
-            this.Controls.Add(_buttonPanel);
-            this.Controls.Add(_titleLabel);
-            this.Controls.Add(_logoPanel);
-
-            // Position logo and title
-            this.Resize += (s, e) => PositionControls();
-            this.HandleCreated += (s, e) => PositionControls();
-
-            // Enable window dragging
-            EnableDragging(this);
-            EnableDragging(_titleLabel);
-            EnableDragging(_logoPanel);
+            PositionControls();
         }
+
+        private void ModernTitleBar_HandleCreated(object sender, EventArgs e)
+        {
+            PositionControls();
+        }
+
+        private void ThemeToggleButton_Click(object sender, EventArgs e)
+        {
+            ThemeToggleClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void MinimizeButton_Click(object sender, EventArgs e)
+        {
+            MinimizeClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void MaximizeButton_Click(object sender, EventArgs e)
+        {
+            MaximizeClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void CloseButton_Click(object sender, EventArgs e)
+        {
+            CloseClicked?.Invoke(this, EventArgs.Empty);
+        }
+        #endregion
 
         private void PositionControls()
         {
