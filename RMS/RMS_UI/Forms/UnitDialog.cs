@@ -242,6 +242,7 @@ namespace RMS_UI.Forms
         {
             if (!ValidateForm())
             {
+                MessageBox.Show("Please correct the errors before saving.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

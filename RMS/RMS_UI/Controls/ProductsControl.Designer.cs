@@ -133,7 +133,6 @@ namespace RMS_UI.Controls
             _dataGrid.ClearFiltersClicked += DataGrid_ClearFiltersClicked;
             _dataGrid.ActivateSelected += DataGrid_ActivateSelected;
             _dataGrid.DeactivateSelected += DataGrid_DeactivateSelected;
-            _dataGrid.MoveToCategorySelected += DataGrid_MoveToCategorySelected;
             _dataGrid.ExportToExcelSelected += DataGrid_ExportToExcelSelected;
             _dataGrid.DeleteSelected += DataGrid_DeleteSelected;
             // 

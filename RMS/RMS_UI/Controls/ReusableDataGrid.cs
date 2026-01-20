@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Windows.Forms;
 using RMS_UI.Utilities;
 
@@ -10,6 +12,7 @@ namespace RMS_UI.Controls
 {
     /// <summary>
     /// Extended grid with tabs for filtering, search functionality, empty state, and context menu for bulk actions.
+    /// Generic and reusable for any data type - configure tabs, search fields, and context menu via API.
     /// </summary>
     [DesignerCategory("UserControl")]
     public partial class ReusableDataGrid : UserControl
@@ -17,7 +20,16 @@ namespace RMS_UI.Controls
         #region Private Fields
         private string _currentTab = "All";
         private string _searchText = "";
-        private string _searchField = "ProductName";
+        private string _searchField = "";
+        private List<TabDefinition> _tabDefinitions = new List<TabDefinition>();
+        private List<SearchFieldDefinition> _searchFieldDefinitions = new List<SearchFieldDefinition>();
+        private bool _checkboxColumnAdded = false;
+        
+        // Filter fields
+        private FilterDefinition? _currentFilter;
+        private Label? _filterLabel;
+        private ComboBox? _filterCombo;
+        private object? _selectedFilterValue;
         #endregion
 
         #region Properties
@@ -73,6 +85,21 @@ namespace RMS_UI.Controls
         [DefaultValue(true)]
         public bool ShowSearch { get; set; } = true;
 
+        [Category("Behavior")]
+        [DefaultValue(false)]
+        [Description("Set to true to show checkbox column for multi-select. Call before setting data source.")]
+        public bool ShowCheckboxColumn { get; set; } = false;
+
+        [Category("Behavior")]
+        [DefaultValue(false)]
+        [Description("Set to true to enable context menu for bulk actions.")]
+        public bool ShowContextMenu { get; set; } = false;
+
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [Browsable(false)]
+        [Description("The currently selected filter value. Returns null for 'All' selection.")]
+        public object? SelectedFilterValue => _selectedFilterValue;
+
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Browsable(false)]
         public ContextMenuStrip BulkActionsMenu => _contextMenu;
@@ -85,11 +112,12 @@ namespace RMS_UI.Controls
         public event EventHandler<DataGridViewCellEventArgs>? CellDoubleClicked;
         public event EventHandler? SelectionChanged;
         public event EventHandler? ClearFiltersClicked;
+        public event EventHandler? ClearSearchClicked;
+        public event EventHandler<FilterChangedEventArgs>? FilterChanged;
 
-        // Bulk action events
+        // Standard bulk action events (used by AddStandardStatusMenuItems)
         public event EventHandler? ActivateSelected;
         public event EventHandler? DeactivateSelected;
-        public event EventHandler? MoveToCategorySelected;
         public event EventHandler? ExportToExcelSelected;
         public event EventHandler? DeleteSelected;
         #endregion
@@ -97,13 +125,24 @@ namespace RMS_UI.Controls
         public ReusableDataGrid()
         {
             InitializeComponent();
-            CreateTabButtons();
-            CreateSearchControls();
+            // Don't create default tabs/search - let calling code configure via SetTabs/SetSearchFields
             CreateEmptyStatePanel();
             CreateContextMenu();
-            _gridView.AddCheckboxColumn();
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
+        }
+
+        /// <summary>
+        /// Call after configuration is complete to finalize grid setup.
+        /// Adds checkbox column if ShowCheckboxColumn is true.
+        /// </summary>
+        public void FinalizeSetup()
+        {
+            if (ShowCheckboxColumn && !_checkboxColumnAdded)
+            {
+                _gridView.AddCheckboxColumn();
+                _checkboxColumnAdded = true;
+            }
         }
 
         #region Designer Event Handlers
@@ -129,21 +168,26 @@ namespace RMS_UI.Controls
 
         private void BtnClearFilters_Click(object? sender, EventArgs e)
         {
-            ClearSearch();
-            _currentTab = "All";
-            UpdateTabSelection("All");
+            ClearAll();
+            _currentTab = _tabDefinitions.Count > 0 ? _tabDefinitions[0].Tag : "All";
+            UpdateTabSelection(_currentTab);
             ClearFiltersClicked?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
         #region Tab Buttons
-        private void CreateTabButtons()
+        private void RecreateTabButtons()
         {
-            var tabFont = new Font("Segoe UI Semibold", 9.5F);
+            _tabPanel.Controls.Clear();
 
-            _btnAll = CreateTabButton("All", "All", tabFont);
-            _btnActive = CreateTabButton("Active", "Active", tabFont);
-            _btnInactive = CreateTabButton("Inactive", "Inactive", tabFont);
+            if (_tabDefinitions.Count == 0)
+            {
+                _tabPanel.Visible = false;
+                return;
+            }
+
+            _tabPanel.Visible = true;
+            var tabFont = new Font("Segoe UI Semibold", 9.5F);
 
             var flowPanel = new FlowLayoutPanel
             {
@@ -154,14 +198,20 @@ namespace RMS_UI.Controls
                 Padding = new Padding(0)
             };
 
-            flowPanel.Controls.Add(_btnAll);
-            flowPanel.Controls.Add(_btnActive);
-            flowPanel.Controls.Add(_btnInactive);
+            foreach (var tabDef in _tabDefinitions)
+            {
+                var btn = CreateTabButton(tabDef.Text, tabDef.Tag, tabFont);
+                flowPanel.Controls.Add(btn);
+            }
 
             _tabPanel.Controls.Add(flowPanel);
 
             // Set initial selection
-            UpdateTabSelection("All");
+            if (_tabDefinitions.Count > 0)
+            {
+                _currentTab = _tabDefinitions[0].Tag;
+                UpdateTabSelection(_currentTab);
+            }
         }
 
         private Button CreateTabButton(string text, string tag, Font font)
@@ -195,25 +245,41 @@ namespace RMS_UI.Controls
         {
             var colors = ThemeManager.Colors;
 
-            foreach (var btn in new[] { _btnAll, _btnActive, _btnInactive })
+            if (_tabPanel.Controls.Count > 0 && _tabPanel.Controls[0] is FlowLayoutPanel flowPanel)
             {
-                if (btn.Tag?.ToString() == selectedTab)
+                foreach (Control ctrl in flowPanel.Controls)
                 {
-                    btn.BackColor = colors.Primary;
-                    btn.ForeColor = Color.White;
-                }
-                else
-                {
-                    btn.BackColor = Color.Transparent;
-                    btn.ForeColor = colors.SecondaryText;
+                    if (ctrl is Button btn)
+                    {
+                        if (btn.Tag?.ToString() == selectedTab)
+                        {
+                            btn.BackColor = colors.Primary;
+                            btn.ForeColor = Color.White;
+                        }
+                        else
+                        {
+                            btn.BackColor = Color.Transparent;
+                            btn.ForeColor = colors.SecondaryText;
+                        }
+                    }
                 }
             }
         }
         #endregion
 
         #region Search Controls
-        private void CreateSearchControls()
+        private void RecreateSearchControls()
         {
+            _searchPanel.Controls.Clear();
+
+            if (_searchFieldDefinitions.Count == 0)
+            {
+                _searchPanel.Visible = false;
+                return;
+            }
+
+            _searchPanel.Visible = true;
+
             var flowPanel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -231,8 +297,12 @@ namespace RMS_UI.Controls
                 FlatStyle = FlatStyle.Flat,
                 Margin = new Padding(0, 0, 10, 0)
             };
-            _cmbSearchField.Items.Add(new ComboBoxItem("Product Name", "ProductName"));
-            _cmbSearchField.Items.Add(new ComboBoxItem("Product ID", "ProductID"));
+            
+            foreach (var fieldDef in _searchFieldDefinitions)
+            {
+                _cmbSearchField.Items.Add(new ComboBoxItem(fieldDef.DisplayName, fieldDef.FieldName));
+            }
+            
             _cmbSearchField.DisplayMember = "Text";
             _cmbSearchField.ValueMember = "Value";
             _cmbSearchField.SelectedIndex = 0;
@@ -241,6 +311,10 @@ namespace RMS_UI.Controls
                 if (_cmbSearchField.SelectedItem is ComboBoxItem item)
                     _searchField = item.Value;
             };
+
+            // Set initial search field
+            if (_searchFieldDefinitions.Count > 0)
+                _searchField = _searchFieldDefinitions[0].FieldName;
 
             // Search TextBox
             _txtSearch = new TextBox
@@ -282,29 +356,179 @@ namespace RMS_UI.Controls
                 Cursor = Cursors.Hand
             };
             _btnClearSearch.FlatAppearance.BorderSize = 1;
-            _btnClearSearch.Click += (s, e) => ClearSearch();
+            _btnClearSearch.Click += (s, e) => ClearSearchClicked?.Invoke(this, EventArgs.Empty);
 
             flowPanel.Controls.Add(_cmbSearchField);
             flowPanel.Controls.Add(_txtSearch);
             flowPanel.Controls.Add(_btnSearch);
             flowPanel.Controls.Add(_btnClearSearch);
 
+            // Add filter controls if filter is defined
+            if (_currentFilter != null)
+            {
+                CreateFilterControls(flowPanel);
+            }
+
             _searchPanel.Controls.Add(flowPanel);
+            
+            // Apply theme to new controls
+            ApplyThemeToSearchControls();
+        }
+
+        private void ApplyThemeToSearchControls()
+        {
+            var colors = ThemeManager.Colors;
+            
+            if (_cmbSearchField != null)
+            {
+                _cmbSearchField.BackColor = colors.ContentBackground;
+                _cmbSearchField.ForeColor = colors.PrimaryText;
+            }
+
+            if (_txtSearch != null)
+            {
+                _txtSearch.BackColor = colors.ContentBackground;
+                _txtSearch.ForeColor = colors.PrimaryText;
+            }
+
+            if (_btnSearch != null)
+            {
+                _btnSearch.BackColor = colors.Primary;
+                _btnSearch.ForeColor = Color.White;
+                _btnSearch.FlatAppearance.BorderColor = colors.Primary;
+            }
+
+            if (_btnClearSearch != null)
+            {
+                _btnClearSearch.BackColor = colors.ContentBackground;
+                _btnClearSearch.ForeColor = colors.SecondaryText;
+                _btnClearSearch.FlatAppearance.BorderColor = colors.BorderColor;
+            }
+
+            // Filter controls theme
+            if (_filterLabel != null)
+            {
+                _filterLabel.ForeColor = colors.SecondaryText;
+            }
+
+            if (_filterCombo != null)
+            {
+                _filterCombo.BackColor = colors.ContentBackground;
+                _filterCombo.ForeColor = colors.PrimaryText;
+            }
+        }
+
+        private void CreateFilterControls(FlowLayoutPanel flowPanel)
+        {
+            if (_currentFilter == null) return;
+
+            // Add spacing/separator
+            var spacer = new Panel
+            {
+                Width = 30,
+                Height = 32,
+                Margin = new Padding(0)
+            };
+            flowPanel.Controls.Add(spacer);
+
+            // Filter Label - shown as label when single filter (not as combo)
+            _filterLabel = new Label
+            {
+                Text = _currentFilter.DisplayName + ":",
+                Font = new Font("Segoe UI", 9.5F),
+                AutoSize = true,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Margin = new Padding(0, 8, 8, 0)
+            };
+            flowPanel.Controls.Add(_filterLabel);
+
+            // Filter ComboBox
+            _filterCombo = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 9.5F),
+                Width = 160,
+                FlatStyle = FlatStyle.Flat,
+                Margin = new Padding(0, 0, 0, 0)
+            };
+
+            // Load filter data
+            LoadFilterData();
+
+            _filterCombo.SelectedIndexChanged += (s, e) =>
+            {
+                if (_filterCombo.SelectedItem is FilterComboItem item)
+                {
+                    _selectedFilterValue = item.IsAllItem ? null : item.Value;
+                    FilterChanged?.Invoke(this, new FilterChangedEventArgs(
+                        _currentFilter.FilterKey, 
+                        _selectedFilterValue
+                    ));
+                }
+            };
+
+            flowPanel.Controls.Add(_filterCombo);
+
+            // Apply theme
+            var colors = ThemeManager.Colors;
+            _filterLabel.ForeColor = colors.SecondaryText;
+            _filterCombo.BackColor = colors.ContentBackground;
+            _filterCombo.ForeColor = colors.PrimaryText;
+        }
+
+        private void LoadFilterData()
+        {
+            if (_filterCombo == null || _currentFilter == null) return;
+
+            _filterCombo.Items.Clear();
+
+            // Add "All" item first
+            _filterCombo.Items.Add(new FilterComboItem(
+                _currentFilter.AllItemsText, 
+                null, 
+                isAllItem: true
+            ));
+
+            // Get data from DataTable or Func
+            DataTable? dataTable = null;
+            if (_currentFilter.DataSource is DataTable dt)
+            {
+                dataTable = dt;
+            }
+            else if (_currentFilter.DataSource is Func<DataTable> func)
+            {
+                try
+                {
+                    dataTable = func();
+                }
+                catch
+                {
+                    // Silent fail - just show "All" option
+                }
+            }
+
+            if (dataTable != null)
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    var value = row[_currentFilter.ValueColumn];
+                    var display = row[_currentFilter.DisplayColumn]?.ToString() ?? "";
+                    _filterCombo.Items.Add(new FilterComboItem(display, value, isAllItem: false));
+                }
+            }
+
+            _filterCombo.SelectedIndex = 0;
+            _selectedFilterValue = null;
         }
 
         private void PerformSearch()
         {
-            _searchText = _txtSearch.Text.Trim();
-            _gridView.ResetToFirstPage();
-            SearchRequested?.Invoke(this, new SearchEventArgs(_searchText, _searchField));
-        }
-
-        private void ClearSearch()
-        {
-            _txtSearch.Text = "";
-            _searchText = "";
-            _gridView.ResetToFirstPage();
-            SearchRequested?.Invoke(this, new SearchEventArgs("", _searchField));
+            if (_txtSearch != null)
+            {
+                _searchText = _txtSearch.Text.Trim();
+                _gridView.ResetToFirstPage();
+                SearchRequested?.Invoke(this, new SearchEventArgs(_searchText, _searchField));
+            }
         }
         #endregion
 
@@ -408,35 +632,15 @@ namespace RMS_UI.Controls
             _contextMenu = new ContextMenuStrip();
             _contextMenu.Font = new Font("Segoe UI", 9.5F);
 
-            // Change Status submenu
-            var changeStatusItem = new ToolStripMenuItem("Change Status");
-            var activateItem = new ToolStripMenuItem("Activate", null, (s, e) => ActivateSelected?.Invoke(this, EventArgs.Empty));
-            var deactivateItem = new ToolStripMenuItem("Deactivate", null, (s, e) => DeactivateSelected?.Invoke(this, EventArgs.Empty));
-            changeStatusItem.DropDownItems.AddRange(new ToolStripItem[] { activateItem, deactivateItem });
-
-            // Move to Category
-            var moveToCategoryItem = new ToolStripMenuItem("Move to Category", null, (s, e) => MoveToCategorySelected?.Invoke(this, EventArgs.Empty));
-
-            // Export to Excel
-            var exportItem = new ToolStripMenuItem("Export to Excel", null, (s, e) => ExportToExcelSelected?.Invoke(this, EventArgs.Empty));
-
-            // Delete
-            var deleteItem = new ToolStripMenuItem("Delete Selected", null, (s, e) => DeleteSelected?.Invoke(this, EventArgs.Empty));
-            deleteItem.ForeColor = Color.FromArgb(239, 68, 68);
-
-            _contextMenu.Items.AddRange(new ToolStripItem[]
-            {
-                changeStatusItem,
-                moveToCategoryItem,
-                new ToolStripSeparator(),
-                exportItem,
-                new ToolStripSeparator(),
-                deleteItem
-            });
-
-            // Opening event - check if rows are selected
+            // Opening event - check if rows are selected (only if context menu is enabled)
             _contextMenu.Opening += (s, e) =>
             {
+                if (!ShowContextMenu || _contextMenu.Items.Count == 0)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+                
                 var checkedRows = _gridView.GetCheckedRows();
                 if (checkedRows.Count == 0)
                 {
@@ -445,6 +649,84 @@ namespace RMS_UI.Controls
             };
 
             _gridView.DataGridView.ContextMenuStrip = _contextMenu;
+        }
+
+        /// <summary>
+        /// Clears all context menu items to add custom ones.
+        /// </summary>
+        public void ClearContextMenu()
+        {
+            _contextMenu.Items.Clear();
+        }
+
+        /// <summary>
+        /// Adds a custom context menu item.
+        /// </summary>
+        /// <param name="text">Menu item text</param>
+        /// <param name="onClick">Click event handler</param>
+        /// <param name="isDelete">If true, shows in red color for delete actions</param>
+        public void AddContextMenuItem(string text, EventHandler onClick, bool isDelete = false)
+        {
+            var item = new ToolStripMenuItem(text, null, onClick);
+            if (isDelete)
+                item.ForeColor = Color.FromArgb(239, 68, 68);
+            _contextMenu.Items.Add(item);
+        }
+
+        /// <summary>
+        /// Adds a separator to the context menu.
+        /// </summary>
+        public void AddContextMenuSeparator()
+        {
+            _contextMenu.Items.Add(new ToolStripSeparator());
+        }
+
+        /// <summary>
+        /// Adds standard status menu items (Change Status submenu with Activate/Deactivate, and Delete).
+        /// </summary>
+        /// <param name="hasActivate">Include Activate option</param>
+        /// <param name="hasDeactivate">Include Deactivate option</param>
+        /// <param name="hasDelete">Include Delete option (shown in red)</param>
+        /// <param name="hasExport">Include Export to Excel option</param>
+        public void AddStandardStatusMenuItems(bool hasActivate = true, bool hasDeactivate = true, bool hasDelete = true, bool hasExport = false)
+        {
+            if (hasActivate || hasDeactivate)
+            {
+                var changeStatusItem = new ToolStripMenuItem("Change Status");
+                
+                if (hasActivate)
+                {
+                    var activateItem = new ToolStripMenuItem("Activate", null, (s, e) => ActivateSelected?.Invoke(this, EventArgs.Empty));
+                    changeStatusItem.DropDownItems.Add(activateItem);
+                }
+                
+                if (hasDeactivate)
+                {
+                    var deactivateItem = new ToolStripMenuItem("Deactivate", null, (s, e) => DeactivateSelected?.Invoke(this, EventArgs.Empty));
+                    changeStatusItem.DropDownItems.Add(deactivateItem);
+                }
+                
+                _contextMenu.Items.Add(changeStatusItem);
+            }
+
+            if (hasExport)
+            {
+                if (_contextMenu.Items.Count > 0)
+                    _contextMenu.Items.Add(new ToolStripSeparator());
+                    
+                var exportItem = new ToolStripMenuItem("Export to Excel", null, (s, e) => ExportToExcelSelected?.Invoke(this, EventArgs.Empty));
+                _contextMenu.Items.Add(exportItem);
+            }
+
+            if (hasDelete)
+            {
+                if (_contextMenu.Items.Count > 0)
+                    _contextMenu.Items.Add(new ToolStripSeparator());
+                    
+                var deleteItem = new ToolStripMenuItem("Delete Selected", null, (s, e) => DeleteSelected?.Invoke(this, EventArgs.Empty));
+                deleteItem.ForeColor = Color.FromArgb(239, 68, 68);
+                _contextMenu.Items.Add(deleteItem);
+            }
         }
         #endregion
 
@@ -477,6 +759,14 @@ namespace RMS_UI.Controls
         }
 
         /// <summary>
+        /// Makes the last visible column fill the remaining space
+        /// </summary>
+        public void FillLastColumn()
+        {
+            _gridView.FillLastColumn();
+        }
+
+        /// <summary>
         /// Gets checked rows
         /// </summary>
         public List<DataGridViewRow> GetCheckedRows() => _gridView.GetCheckedRows();
@@ -487,25 +777,36 @@ namespace RMS_UI.Controls
         public void SelectAllCheckboxes(bool select) => _gridView.SelectAllCheckboxes(select);
 
         /// <summary>
-        /// Adds a search field option to the combo box
+        /// Configures the tabs for filtering data. Call this method before loading data.
         /// </summary>
-        public void AddSearchField(string displayText, string fieldName)
+        /// <example>
+        /// _dataGrid.SetTabs(
+        ///     new TabDefinition("All", "All"),
+        ///     new TabDefinition("Active", "Active"),
+        ///     new TabDefinition("Inactive", "Inactive")
+        /// );
+        /// </example>
+        public void SetTabs(params TabDefinition[] tabs)
         {
-            _cmbSearchField.Items.Add(new ComboBoxItem(displayText, fieldName));
+            _tabDefinitions.Clear();
+            _tabDefinitions.AddRange(tabs);
+            RecreateTabButtons();
         }
 
         /// <summary>
-        /// Clears search field options and adds new ones
+        /// Configures the search fields for the search combo box. Call this method before loading data.
         /// </summary>
-        public void SetSearchFields(params (string displayText, string fieldName)[] fields)
+        /// <example>
+        /// _dataGrid.SetSearchFields(
+        ///     new SearchFieldDefinition("Product Name", "ProductName"),
+        ///     new SearchFieldDefinition("Product ID", "ProductID")
+        /// );
+        /// </example>
+        public void SetSearchFields(params SearchFieldDefinition[] fields)
         {
-            _cmbSearchField.Items.Clear();
-            foreach (var (displayText, fieldName) in fields)
-            {
-                _cmbSearchField.Items.Add(new ComboBoxItem(displayText, fieldName));
-            }
-            if (_cmbSearchField.Items.Count > 0)
-                _cmbSearchField.SelectedIndex = 0;
+            _searchFieldDefinitions.Clear();
+            _searchFieldDefinitions.AddRange(fields);
+            RecreateSearchControls();
         }
 
         /// <summary>
@@ -526,6 +827,87 @@ namespace RMS_UI.Controls
         /// Resets to first page
         /// </summary>
         public void ResetToFirstPage() => _gridView.ResetToFirstPage();
+
+        /// <summary>
+        /// Clears the search text box and resets search state.
+        /// Call this from your ClearSearchClicked event handler.
+        /// </summary>
+        public void ClearSearch()
+        {
+            if (_txtSearch != null)
+                _txtSearch.Text = "";
+            _searchText = "";
+            _gridView.ResetToFirstPage();
+            ResetTabToFirst();
+        }
+
+        /// <summary>
+        /// Resets tab selection to first tab.
+        /// </summary>
+        public void ResetTabToFirst()
+        {
+            _currentTab = _tabDefinitions.Count > 0 ? _tabDefinitions[0].Tag : "All";
+            UpdateTabSelection(_currentTab);
+        }
+
+        /// <summary>
+        /// Sets the filter definition. Call this before SetSearchFields or after.
+        /// </summary>
+        /// <param name="filter">The filter definition, or null to remove filter</param>
+        /// <example>
+        /// _dataGrid.SetFilter(new FilterDefinition(
+        ///     displayName: "Category",
+        ///     filterKey: "CategoryID",
+        ///     dataSource: () => clsCategory.GetAllCategory(),
+        ///     valueColumn: "CategoryID",
+        ///     displayColumn: "CategoryName",
+        ///     allItemsText: "All Categories"
+        /// ));
+        /// </example>
+        public void SetFilter(FilterDefinition? filter)
+        {
+            _currentFilter = filter;
+            _selectedFilterValue = null;
+            
+            // Recreate search controls to include/exclude filter
+            if (_searchFieldDefinitions.Count > 0)
+            {
+                RecreateSearchControls();
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the filter data from the data source.
+        /// Call this after adding/editing/deleting items that affect the filter.
+        /// </summary>
+        public void RefreshFilter()
+        {
+            LoadFilterData();
+        }
+
+        /// <summary>
+        /// Resets the filter selection to "All".
+        /// </summary>
+        public void ResetFilter()
+        {
+            if (_filterCombo != null && _filterCombo.Items.Count > 0)
+            {
+                // Temporarily remove event handler to prevent double-firing
+                // Force reset by setting to -1 first, then to 0
+                _filterCombo.SelectedIndex = -1;
+                _filterCombo.SelectedIndex = 0;
+                _selectedFilterValue = null;
+            }
+        }
+
+        /// <summary>
+        /// Clears both search and filter, resetting to initial state.
+        /// </summary>
+        public void ClearAll()
+        {
+            ClearSearch();
+            ResetFilter();
+        }
         #endregion
 
         #region Theme
@@ -629,6 +1011,22 @@ namespace RMS_UI.Controls
 
             public override string ToString() => Text;
         }
+
+        private class FilterComboItem
+        {
+            public string Text { get; }
+            public object? Value { get; }
+            public bool IsAllItem { get; }
+
+            public FilterComboItem(string text, object? value, bool isAllItem)
+            {
+                Text = text;
+                Value = value;
+                IsAllItem = isAllItem;
+            }
+
+            public override string ToString() => Text;
+        }
         #endregion
     }
 
@@ -652,6 +1050,122 @@ namespace RMS_UI.Controls
         {
             SearchText = searchText;
             SearchField = searchField;
+        }
+    }
+    #endregion
+
+    #region Configuration Classes
+    /// <summary>
+    /// Defines a tab for filtering data in ReusableDataGrid.
+    /// </summary>
+    public class TabDefinition
+    {
+        /// <summary>
+        /// The display text shown on the tab button.
+        /// </summary>
+        public string Text { get; set; }
+
+        /// <summary>
+        /// The tag value used to identify the tab (returned in CurrentTab property and TabChanged event).
+        /// </summary>
+        public string Tag { get; set; }
+
+        public TabDefinition(string text, string tag)
+        {
+            Text = text;
+            Tag = tag;
+        }
+    }
+
+    /// <summary>
+    /// Defines a search field option for ReusableDataGrid search combo box.
+    /// </summary>
+    public class SearchFieldDefinition
+    {
+        /// <summary>
+        /// The display name shown in the combo box.
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
+        /// The field name used for filtering (returned in SearchField property and SearchRequested event).
+        /// </summary>
+        public string FieldName { get; set; }
+
+        public SearchFieldDefinition(string displayName, string fieldName)
+        {
+            DisplayName = displayName;
+            FieldName = fieldName;
+        }
+    }
+
+    /// <summary>
+    /// Defines a filter for ReusableDataGrid with data source binding.
+    /// </summary>
+    public class FilterDefinition
+    {
+        /// <summary>
+        /// The display name shown as label (e.g., "Category").
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
+        /// The key used to identify the filter (e.g., "CategoryID").
+        /// </summary>
+        public string FilterKey { get; set; }
+
+        /// <summary>
+        /// The data source - can be DataTable or Func&lt;DataTable&gt; for lazy loading.
+        /// </summary>
+        public object DataSource { get; set; }
+
+        /// <summary>
+        /// The column name for the value (e.g., "CategoryID").
+        /// </summary>
+        public string ValueColumn { get; set; }
+
+        /// <summary>
+        /// The column name for display text (e.g., "CategoryName").
+        /// </summary>
+        public string DisplayColumn { get; set; }
+
+        /// <summary>
+        /// Text for "All" option (e.g., "All Categories").
+        /// </summary>
+        public string AllItemsText { get; set; }
+
+        public FilterDefinition(string displayName, string filterKey, 
+                               object dataSource, string valueColumn, 
+                               string displayColumn, string allItemsText = "All")
+        {
+            DisplayName = displayName;
+            FilterKey = filterKey;
+            DataSource = dataSource;
+            ValueColumn = valueColumn;
+            DisplayColumn = displayColumn;
+            AllItemsText = allItemsText;
+        }
+    }
+
+    /// <summary>
+    /// Event args for filter changed event.
+    /// </summary>
+    public class FilterChangedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// The filter key (e.g., "CategoryID").
+        /// </summary>
+        public string FilterKey { get; }
+
+        /// <summary>
+        /// The selected value. Null means "All" is selected.
+        /// </summary>
+        public object? SelectedValue { get; }
+
+        public FilterChangedEventArgs(string filterKey, object? selectedValue)
+        {
+            FilterKey = filterKey;
+            SelectedValue = selectedValue;
         }
     }
     #endregion

@@ -178,12 +178,13 @@ namespace RMS_UI.Forms
             _formLayout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                ColumnCount = 2,
+                ColumnCount = 3,
                 RowCount = 7,
                 AutoSize = false
             };
             _formLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
             _formLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            _formLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 25)); // Space for ErrorProvider
 
             for (int i = 0; i < 7; i++)
             {

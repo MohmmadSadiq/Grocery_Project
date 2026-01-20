@@ -14,13 +14,12 @@ namespace RMS_UI.Controls
         private ModernDataGridView _gridView;
         private System.Windows.Forms.Panel _emptyStatePanel;
         private System.Windows.Forms.ContextMenuStrip _contextMenu;
-        private System.Windows.Forms.Button _btnAll;
-        private System.Windows.Forms.Button _btnActive;
-        private System.Windows.Forms.Button _btnInactive;
+        // Dynamic controls - created by RecreateSearchControls()
         private System.Windows.Forms.ComboBox _cmbSearchField;
         private System.Windows.Forms.TextBox _txtSearch;
         private System.Windows.Forms.Button _btnSearch;
         private System.Windows.Forms.Button _btnClearSearch;
+        // Empty state controls
         private System.Windows.Forms.Label _emptyIcon;
         private System.Windows.Forms.Label _emptyMessage;
         private System.Windows.Forms.Button _btnClearFilters;

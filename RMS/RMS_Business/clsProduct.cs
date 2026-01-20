@@ -1,7 +1,6 @@
 using System;
 using System.Data;
 using RMS_DataAccess;
-using static RMS_DataAccess.clsProductData;
 namespace RMS_Business
 {
     public class clsProduct
@@ -72,10 +71,23 @@ namespace RMS_Business
         {
             return clsProductData.GetAllProduct();
         }
+
+        /// <summary>
+        /// Gets products with pagination from ProductView.
+        /// </summary>
+        /// <param name="pageNumber">Page number (1-based)</param>
+        /// <param name="rowsPerPage">Number of rows per page</param>
+        /// <returns>DataTable with ProductID, ProductName, Description, IsActive, ReorderLevel, ImagePath, CategoryName, BrandName, CompanyName</returns>
+        public static DataTable GetProductsPaged(int pageNumber, int rowsPerPage)
+        {
+            return clsProductData.GetProductsPaged(pageNumber, rowsPerPage);
+        }
+
         public static DataTable SearchProductsPages(ProductSearchCriteria searchCriteria)
         {
-            return clsProductData.SearchProductsPages(searchCriteria);
+            return clsProductData.SearchProductsPages(searchCriteria.ToDataAccessCriteria());
         }
+
 
         /// <summary>
         /// Creates a new Product instance for adding a new product.
@@ -84,5 +96,44 @@ namespace RMS_Business
         {
             return new clsProduct();
         }
+
+        #region Search Criteria Class
+
+        /// <summary>
+        ///    Defines the criteria for searching and Filtering products.
+        /// </summary>
+        public class ProductSearchCriteria
+        {
+            public string SearchText { get; set; } = "";
+            public string SearchBy { get; set; } = "Name"; // Name, ID, Category, Brand
+            public int? CategoryId { get; set; }
+            public bool? IsActive { get; set; } // Nullable for "All" tab
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+            public string SortBy { get; set; } = "Name";
+
+            public clsProductData.ProductSearchCriteria ToDataAccessCriteria()
+            {
+                return new clsProductData.ProductSearchCriteria
+                {
+                    SearchText = this.SearchText,
+                    SearchBy = this.SearchBy,
+                    CategoryId = this.CategoryId,
+                    IsActive = this.IsActive,
+                    PageNumber = this.PageNumber,
+                    PageSize = this.PageSize,
+                    SortBy = this.SortBy
+                };
+            }
+            /// <summary>
+            /// Checks if the search criteria is in its default state.
+            /// </summary>
+            public bool IsDefault()
+            {
+                return string.IsNullOrEmpty(SearchText) && !CategoryId.HasValue && !IsActive.HasValue && PageNumber == 1 && PageSize == 20 && string.IsNullOrEmpty(SortBy);
+            }
+        }
+        #endregion    
+        
     }
 }

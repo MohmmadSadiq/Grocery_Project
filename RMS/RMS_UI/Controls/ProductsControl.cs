@@ -21,6 +21,7 @@ namespace RMS_UI.Controls
         {
             InitializeComponent();
             CreateHeaderPanel();
+            ConfigureDataGrid();
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
         }
@@ -28,6 +29,50 @@ namespace RMS_UI.Controls
         private void ProductsControl_Load(object sender, EventArgs e)
         {
             LoadProducts();
+        }
+
+        private void ConfigureDataGrid()
+        {
+            // Configure tabs
+            _dataGrid.SetTabs(
+                new TabDefinition("All", "All"),
+                new TabDefinition("Active", "Active"),
+                new TabDefinition("Inactive", "Inactive")
+            );
+
+            // Configure search fields
+            _dataGrid.SetSearchFields(
+                new SearchFieldDefinition("Product Name", "ProductName"),
+                new SearchFieldDefinition("Product ID", "ProductID")
+            );
+
+            // Configure filter
+            _dataGrid.SetFilter(new FilterDefinition(
+                displayName: "Category",
+                filterKey: "CategoryID",
+                dataSource: new Func<DataTable>(() => clsCategory.GetAllCategory()),
+                valueColumn: "CategoryID",
+                displayColumn: "CategoryName",
+                allItemsText: "All Categories"
+            ));
+
+            // Wire up filter changed event
+            _dataGrid.FilterChanged += DataGrid_FilterChanged;
+
+            // Enable checkbox column and context menu
+            _dataGrid.ShowCheckboxColumn = true;
+            _dataGrid.ShowContextMenu = true;
+
+            // Add context menu items
+            _dataGrid.AddStandardStatusMenuItems(hasActivate: true, hasDeactivate: true, hasDelete: true, hasExport: true);
+            _dataGrid.AddContextMenuSeparator();
+            _dataGrid.AddContextMenuItem("📁 Move to Category", (s, e) => DataGrid_MoveToCategorySelected(s!, e));
+
+            // Wire up clear search event
+            _dataGrid.ClearSearchClicked += DataGrid_ClearSearchClicked;
+
+            // Finalize setup (adds checkbox column if enabled)
+            _dataGrid.FinalizeSetup();
         }
         #endregion
 
@@ -116,12 +161,45 @@ namespace RMS_UI.Controls
         #region Data Loading
         private void LoadProducts()
         {
+            // Get IsActive filter from current tab
+            bool? isActiveFilter = _dataGrid.CurrentTab switch
+            {
+                "Active" => true,
+                "Inactive" => false,
+                _ => null // "All" tab
+            };
+
+            // Map SearchField to SearchBy parameter
+            string searchBy = _dataGrid.SearchField switch
+            {
+                "ProductName" => "Name",
+                "ProductID" => "ID",
+                _ => "Name"
+            };
+
+            clsProduct.ProductSearchCriteria searchCriteria = new clsProduct.ProductSearchCriteria
+            {
+                SearchText = _dataGrid.SearchText,
+                SearchBy = searchBy,
+                CategoryId = (int?)_dataGrid.SelectedFilterValue,
+                IsActive = isActiveFilter,
+                PageNumber = _dataGrid.CurrentPage,
+                PageSize = _dataGrid.PageSize,
+                SortBy = "ID"
+            };
+
             try
             {
-                var dt = clsProduct.GetAllProduct();
-                var filteredData = FilterData(dt);
+                var filteredData = clsProduct.SearchProductsPages(searchCriteria);
+                
+                // Get TotalCount from first row if available
+                int totalCount = 0;
+                if (filteredData.Rows.Count > 0 && filteredData.Columns.Contains("TotalCount"))
+                {
+                    totalCount = Convert.ToInt32(filteredData.Rows[0]["TotalCount"]);
+                }
 
-                _dataGrid.SetDataSource(filteredData, filteredData.Rows.Count);
+                _dataGrid.SetDataSource(filteredData, totalCount);
                 ConfigureGridColumns();
             }
             catch (Exception ex)
@@ -130,6 +208,7 @@ namespace RMS_UI.Controls
             }
         }
 
+        /* Removed - Filtering now done in Database via sp_SearchProductsPages
         private DataTable FilterData(DataTable? dt)
         {
             if (dt == null || dt.Rows.Count == 0)
@@ -141,12 +220,23 @@ namespace RMS_UI.Controls
             {
                 bool include = true;
 
-                // Filter by IsActive tab
-                var isActiveFilter = GetIsActiveFilter();
-                if (isActiveFilter.HasValue)
+                // Filter by Category using the new filter
+                var selectedCategoryId = _dataGrid.SelectedFilterValue;
+                if (selectedCategoryId != null)
                 {
-                    bool rowIsActive = row["IsActive"] != DBNull.Value && (bool)row["IsActive"];
-                    include = rowIsActive == isActiveFilter.Value;
+                    int rowCategoryId = row["CategoryID"] != DBNull.Value ? Convert.ToInt32(row["CategoryID"]) : -1;
+                    include = rowCategoryId == Convert.ToInt32(selectedCategoryId);
+                }
+
+                // Filter by IsActive tab
+                if (include)
+                {
+                    var isActiveFilter = GetIsActiveFilter();
+                    if (isActiveFilter.HasValue)
+                    {
+                        bool rowIsActive = row["IsActive"] != DBNull.Value && (bool)row["IsActive"];
+                        include = rowIsActive == isActiveFilter.Value;
+                    }
                 }
 
                 // Filter by search text
@@ -173,16 +263,7 @@ namespace RMS_UI.Controls
 
             return filteredDt;
         }
-
-        private bool? GetIsActiveFilter()
-        {
-            return _dataGrid.CurrentTab switch
-            {
-                "Active" => true,
-                "Inactive" => false,
-                _ => null
-            };
-        }
+        */
 
         private void ConfigureGridColumns()
         {
@@ -192,16 +273,18 @@ namespace RMS_UI.Controls
                 DataGridViewContentAlignment.MiddleLeft);
             _dataGrid.ConfigureColumn("CategoryName", "Category", 130);
             _dataGrid.ConfigureColumn("BrandName", "Brand", 130);
+            _dataGrid.ConfigureColumn("CompanyName", "Company", 130);
             _dataGrid.ConfigureColumn("ReorderLevel", "Reorder Lvl", 90,
                 true, DataGridViewContentAlignment.MiddleCenter);
             _dataGrid.ConfigureColumn("IsActive", "Status", 80,
                 true, DataGridViewContentAlignment.MiddleCenter);
 
             // Hide unnecessary columns
-            _dataGrid.ConfigureColumn("CategoryID", "", 0, false);
-            _dataGrid.ConfigureColumn("BrandID", "", 0, false);
-            _dataGrid.ConfigureColumn("CompanyID", "", 0, false);
-            _dataGrid.ConfigureColumn("Description", "", 0, false);
+            _dataGrid.ConfigureColumn("ImagePath", "", 0, false);
+            _dataGrid.ConfigureColumn("TotalCount", "", 0, false);
+
+            // Make last column fill remaining space
+            _dataGrid.FillLastColumn();
 
             // Enable sorting
             foreach (DataGridViewColumn col in _dataGrid.DataGridView.Columns)
@@ -242,6 +325,19 @@ namespace RMS_UI.Controls
 
         private void DataGrid_ClearFiltersClicked(object sender, EventArgs e)
         {
+            _dataGrid.ClearAll();
+            LoadProducts();
+        }
+
+        private void DataGrid_ClearSearchClicked(object? sender, EventArgs e)
+        {
+            _dataGrid.ClearAll();
+            _dataGrid.ClearSearch();
+            LoadProducts();
+        }
+
+        private void DataGrid_FilterChanged(object? sender, FilterChangedEventArgs e)
+        {
             LoadProducts();
         }
 
@@ -275,6 +371,7 @@ namespace RMS_UI.Controls
         private void BtnNewProduct_Click(object? sender, EventArgs e)
         {
             OpenProductDialog(-1);
+
         }
 
         private void BtnSettings_Click(object? sender, EventArgs e)

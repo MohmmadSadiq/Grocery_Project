@@ -337,6 +337,27 @@ namespace RMS_UI.Controls
         }
 
         /// <summary>
+        /// Makes the last visible column fill the remaining space
+        /// </summary>
+        public void FillLastColumn()
+        {
+            DataGridViewColumn? lastVisibleColumn = null;
+            
+            foreach (DataGridViewColumn col in _dataGridView.Columns)
+            {
+                if (col.Visible && col.Name != "SelectCheckbox")
+                {
+                    lastVisibleColumn = col;
+                }
+            }
+
+            if (lastVisibleColumn != null)
+            {
+                lastVisibleColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
+        }
+
+        /// <summary>
         /// Sets the data source and optionally the total records count
         /// </summary>
         public void SetDataSource(object? dataSource, int? totalRecords = null)
@@ -451,6 +472,22 @@ namespace RMS_UI.Controls
                 _dataGridView.DefaultCellStyle.ForeColor = colors.PrimaryText;
                 _dataGridView.DefaultCellStyle.SelectionBackColor = colors.PrimaryLight;
                 _dataGridView.DefaultCellStyle.SelectionForeColor = colors.Primary;
+
+                // Update alternating rows style
+                _dataGridView.AlternatingRowsDefaultCellStyle.BackColor = colors.ContentBackground;
+                _dataGridView.AlternatingRowsDefaultCellStyle.ForeColor = colors.PrimaryText;
+
+                // Update existing rows to apply new theme immediately
+                foreach (DataGridViewRow row in _dataGridView.Rows)
+                {
+                    row.DefaultCellStyle.BackColor = colors.ContentBackground;
+                    row.DefaultCellStyle.ForeColor = colors.PrimaryText;
+                    row.DefaultCellStyle.SelectionBackColor = colors.PrimaryLight;
+                    row.DefaultCellStyle.SelectionForeColor = colors.Primary;
+                }
+
+                // Force refresh
+                _dataGridView.Refresh();
             }
 
             if (_paginationPanel != null)

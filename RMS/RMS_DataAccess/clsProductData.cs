@@ -192,28 +192,46 @@ namespace RMS_DataAccess
         public class ProductSearchCriteria
         {
             public string SearchText { get; set; } = "";
+            public string SearchBy { get; set; } = "Name"; // Name, ID, Category, Brand
             public int? CategoryId { get; set; }
             public bool? IsActive { get; set; } // Nullable for "All" tab
             public int PageNumber { get; set; } = 1;
             public int PageSize { get; set; } = 20;
-            public string SortBy { get; set; } = "";
+            public string SortBy { get; set; } = "Name";
         }
 
-        public static DataTable SearchProductsPages(ProductSearchCriteria searchCriteria)
+        public static DataTable SearchProductsPages(ProductSearchCriteria criteria)
         {
             DataTable dt = new DataTable();
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand command = new SqlCommand("spProduct_GetAll", connection))
+                using (SqlCommand command = new SqlCommand("sp_SearchProductsPages", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar);
-                    command.Parameters.Add("@CategoryId", SqlDbType.Int);
-                    command.Parameters.Add("@IsActive  ", SqlDbType.Bit );
-                    command.Parameters.Add("@PageNumber", SqlDbType.Int );
-                    command.Parameters.Add("@PageSize  ", SqlDbType.Int );
-                    command.Parameters.Add("@SortBy    ", SqlDbType.NVarChar);
-                   try
+                    
+                    // SearchText - NULL if empty
+                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar, 100).Value = 
+                        string.IsNullOrWhiteSpace(criteria.SearchText) ? DBNull.Value : criteria.SearchText;
+                    
+                    // SearchBy
+                    command.Parameters.Add("@SearchBy", SqlDbType.NVarChar, 50).Value = criteria.SearchBy;
+                    
+                    // CategoryId - NULL if not specified or -1
+                    command.Parameters.Add("@CategoryId", SqlDbType.Int).Value = 
+                        (criteria.CategoryId.HasValue && criteria.CategoryId.Value > 0) ? criteria.CategoryId.Value : DBNull.Value;
+                    
+                    // IsActive - NULL for "All" tab
+                    command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = 
+                        criteria.IsActive.HasValue ? criteria.IsActive.Value : DBNull.Value;
+                    
+                    // Pagination
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value = criteria.PageNumber;
+                    command.Parameters.Add("@PageSize", SqlDbType.Int).Value = criteria.PageSize;
+                    
+                    // SortBy
+                    command.Parameters.Add("@SortBy", SqlDbType.NVarChar, 50).Value = criteria.SortBy;
+                    
+                    try
                     {
                         connection.Open();
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -230,17 +248,5 @@ namespace RMS_DataAccess
             }
             return dt;
         }
-
-        /*
-         * CREATE PROCEDURE sp_SearchProductsPages
-    @SearchText NVARCHAR(100) = NULL,
-    @CategoryId INT = NULL,
-    @IsActive   BIT = NULL,
-    @PageNumber INT = 1,
-    @PageSize   INT = 20,
-    @SortBy     NVARCHAR(50) = 'Name'
-         */
-
-
     }
 }
