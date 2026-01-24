@@ -7,7 +7,7 @@ namespace RMS_DataAccess
 {
     public class clsProductData
     {
-        public static bool GetProductByID(int ProductID, ref string ProductName, ref int? CategoryID, ref int? BrandID, ref string? Description, ref bool IsActive, ref int ReorderLevel, ref DateTime CreatedDate, ref int? CreatedByUserID, ref DateTime UpdatedDate, ref int? UpdatedByUserID)
+        public static bool GetProductByID(int ProductID, ref string ProductName, ref int? CategoryID, ref int? BrandID, ref string? Description, ref bool IsActive, ref int ReorderLevel, ref string? ImagePath, ref DateTime CreatedDate, ref int? CreatedByUserID, ref DateTime UpdatedDate, ref int? UpdatedByUserID)
         {
             bool isFound = false;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -30,6 +30,7 @@ namespace RMS_DataAccess
                                 Description = reader["Description"] != DBNull.Value ? (string?)reader["Description"] : null;
                                 IsActive = (bool)reader["IsActive"];
                                 ReorderLevel = (int)reader["ReorderLevel"];
+                                ImagePath = reader["ImagePath"] != DBNull.Value ? (string?)reader["ImagePath"] : null;
                                 CreatedDate = (DateTime)reader["CreatedDate"];
                                 CreatedByUserID = reader["CreatedByUserID"] != DBNull.Value ? (int?)reader["CreatedByUserID"] : null;
                                 UpdatedDate = (DateTime)reader["UpdatedDate"];
@@ -45,7 +46,7 @@ namespace RMS_DataAccess
             }
             return isFound;
         }
-        public static int AddNewProduct(string ProductName, int? CategoryID, int? BrandID, string? Description, bool IsActive, int ReorderLevel, int? CreatedByUserID)
+        public static int AddNewProduct(string ProductName, int? CategoryID, int? BrandID, string? Description, bool IsActive, int ReorderLevel, string? ImagePath, int? CreatedByUserID)
         {
             int newID = -1;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -59,6 +60,7 @@ namespace RMS_DataAccess
                     command.Parameters.Add("@Description", System.Data.SqlDbType.VarChar).Value = (object?)Description ?? DBNull.Value;
                     command.Parameters.Add("@IsActive", System.Data.SqlDbType.Bit).Value = (object?)IsActive ?? DBNull.Value;
                     command.Parameters.Add("@ReorderLevel", System.Data.SqlDbType.Int).Value = (object?)ReorderLevel ?? DBNull.Value;
+                    command.Parameters.Add("@ImagePath", System.Data.SqlDbType.NVarChar, 500).Value = (object?)ImagePath ?? DBNull.Value;
                     command.Parameters.Add("@CreatedByUserID", System.Data.SqlDbType.Int).Value = (object?)CreatedByUserID ?? DBNull.Value;
                     SqlParameter outputIdParam = new SqlParameter("@NewProductID", SqlDbType.Int) { Direction = ParameterDirection.Output };
                     command.Parameters.Add(outputIdParam);
@@ -77,7 +79,7 @@ namespace RMS_DataAccess
             }
             return newID;
         }
-        public static bool UpdateProduct(int ProductID, string ProductName, int? CategoryID, int? BrandID, string? Description, bool IsActive, int ReorderLevel, int? UpdatedByUserID)
+        public static bool UpdateProduct(int ProductID, string ProductName, int? CategoryID, int? BrandID, string? Description, bool IsActive, int ReorderLevel, string? ImagePath, int? UpdatedByUserID)
         {
             int result = 0;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -92,6 +94,7 @@ namespace RMS_DataAccess
                     command.Parameters.Add("@Description", System.Data.SqlDbType.VarChar).Value = (object?)Description ?? DBNull.Value;
                     command.Parameters.Add("@IsActive", System.Data.SqlDbType.Bit).Value = (object?)IsActive ?? DBNull.Value;
                     command.Parameters.Add("@ReorderLevel", System.Data.SqlDbType.Int).Value = (object?)ReorderLevel ?? DBNull.Value;
+                    command.Parameters.Add("@ImagePath", System.Data.SqlDbType.NVarChar, 500).Value = (object?)ImagePath ?? DBNull.Value;
                     command.Parameters.Add("@UpdatedByUserID", System.Data.SqlDbType.Int).Value = (object?)UpdatedByUserID ?? DBNull.Value;
                     SqlParameter returnParameter = new SqlParameter() { Direction = ParameterDirection.ReturnValue };
                     command.Parameters.Add(returnParameter);

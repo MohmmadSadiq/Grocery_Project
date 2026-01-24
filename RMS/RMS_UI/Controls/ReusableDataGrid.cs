@@ -767,6 +767,24 @@ namespace RMS_UI.Controls
         }
 
         /// <summary>
+        /// Adds an image column for displaying product thumbnails
+        /// </summary>
+        public void AddImageColumn(string columnName = "ProductImage", string headerText = "",
+            int width = 60, int insertIndex = -1)
+        {
+            _gridView.AddImageColumn(columnName, headerText, width, insertIndex);
+        }
+
+        /// <summary>
+        /// Loads images for a specific column from image paths
+        /// </summary>
+        public void LoadImagesFromPaths(string imageColumnName, string pathColumnName,
+            Func<string?, Image> loadImageFunc)
+        {
+            _gridView.LoadImagesFromPaths(imageColumnName, pathColumnName, loadImageFunc);
+        }
+
+        /// <summary>
         /// Gets checked rows
         /// </summary>
         public List<DataGridViewRow> GetCheckedRows() => _gridView.GetCheckedRows();

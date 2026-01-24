@@ -14,6 +14,7 @@ namespace RMS_Business
         public string? Description { get; set; }
         public bool IsActive { get; set; }
         public int ReorderLevel { get; set; }
+        public string? ImagePath { get; set; }
         public DateTime CreatedDate { get; set; }
         public int? CreatedByUserID { get; set; }
         public DateTime UpdatedDate { get; set; }
@@ -27,6 +28,7 @@ namespace RMS_Business
             Description = null;
             IsActive = false;
             ReorderLevel = -1;
+            ImagePath = null;
             CreatedDate = DateTime.MinValue;
             CreatedByUserID = null;
             UpdatedDate = DateTime.MinValue;
@@ -38,11 +40,11 @@ namespace RMS_Business
             switch (Mode)
             {
                 case enMode.AddNew:
-                    var newID = clsProductData.AddNewProduct(ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, CreatedByUserID);
+                    var newID = clsProductData.AddNewProduct(ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, ImagePath, CreatedByUserID);
                     if (newID != -1) { ProductID = newID; Mode = enMode.Update; return true; }
                     else return false;
                 case enMode.Update:
-                    return clsProductData.UpdateProduct(ProductID, ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, UpdatedByUserID);
+                    return clsProductData.UpdateProduct(ProductID, ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, ImagePath, UpdatedByUserID);
             }
             return false;
         }
@@ -54,13 +56,14 @@ namespace RMS_Business
             string? Description = null;
             bool IsActive = false;
             int ReorderLevel = -1;
+            string? ImagePath = null;
             DateTime CreatedDate = DateTime.MinValue;
             int? CreatedByUserID = null;
             DateTime UpdatedDate = DateTime.MinValue;
             int? UpdatedByUserID = null;
-            bool found = clsProductData.GetProductByID(ProductID, ref ProductName, ref CategoryID, ref BrandID, ref Description, ref IsActive, ref ReorderLevel, ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+            bool found = clsProductData.GetProductByID(ProductID, ref ProductName, ref CategoryID, ref BrandID, ref Description, ref IsActive, ref ReorderLevel, ref ImagePath, ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
             if (found)
-                return new clsProduct() { ProductID = ProductID, ProductName = ProductName, CategoryID = CategoryID, BrandID = BrandID, Description = Description, IsActive = IsActive, ReorderLevel = ReorderLevel, CreatedDate = CreatedDate, CreatedByUserID = CreatedByUserID, UpdatedDate = UpdatedDate, UpdatedByUserID = UpdatedByUserID, Mode = enMode.Update };
+                return new clsProduct() { ProductID = ProductID, ProductName = ProductName, CategoryID = CategoryID, BrandID = BrandID, Description = Description, IsActive = IsActive, ReorderLevel = ReorderLevel, ImagePath = ImagePath, CreatedDate = CreatedDate, CreatedByUserID = CreatedByUserID, UpdatedDate = UpdatedDate, UpdatedByUserID = UpdatedByUserID, Mode = enMode.Update };
             else return null;
         }
         public static bool DeleteProduct(int ProductID, int? UpdatedByUserID = null)

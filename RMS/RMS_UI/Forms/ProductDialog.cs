@@ -18,6 +18,8 @@ namespace RMS_UI.Forms
         private readonly int _productId;
         private clsProduct? _product;
         private bool _isEditMode;
+        private string? _selectedImagePath; // Path of new image selected by user
+        private bool _imageRemoved; // Flag to track if user removed the image
 
         // Header
         private Panel _headerPanel = null!;
@@ -49,6 +51,13 @@ namespace RMS_UI.Forms
         private Label _lblIsActive = null!;
         private CheckBox _chkIsActive = null!;
 
+        // Image Controls
+        private Label _lblImage = null!;
+        private Panel _imagePanel = null!;
+        private PictureBox _pictureBox = null!;
+        private Button _btnUploadImage = null!;
+        private Button _btnRemoveImage = null!;
+
         // Buttons Panel
         private Panel _buttonsPanel = null!;
         private Button _btnSave = null!;
@@ -69,6 +78,7 @@ namespace RMS_UI.Forms
             ApplyTheme();
 
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
+            this.FormClosing += ProductDialog_FormClosing;
 
             if (_isEditMode)
             {
@@ -81,6 +91,17 @@ namespace RMS_UI.Forms
                 _chkIsActive.Checked = true;
             }
         }
+
+        private void ProductDialog_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            // Dispose image to release file locks
+            if (_pictureBox?.Image != null)
+            {
+                var img = _pictureBox.Image;
+                _pictureBox.Image = null;
+                img.Dispose();
+            }
+        }
         #endregion
 
         #region Create UI
@@ -90,7 +111,7 @@ namespace RMS_UI.Forms
 
             // Form settings
             this.Text = _isEditMode ? "Edit Product" : "Add New Product";
-            this.Size = new Size(500, 580);
+            this.Size = new Size(500, 700);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.None;
             this.BackColor = Color.White;
@@ -179,14 +200,14 @@ namespace RMS_UI.Forms
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 3,
-                RowCount = 7,
+                RowCount = 8,
                 AutoSize = false
             };
             _formLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
             _formLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             _formLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 25)); // Space for ErrorProvider
 
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < 8; i++)
             {
                 _formLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 55));
             }
@@ -262,6 +283,12 @@ namespace RMS_UI.Forms
             _formLayout.RowStyles[row] = new RowStyle(SizeType.Absolute, 80);
             AddFormRow(row++, _lblDescription, _txtDescription);
 
+            // Image
+            _lblImage = CreateLabel("Image:");
+            _formLayout.RowStyles[row] = new RowStyle(SizeType.Absolute, 120);
+            CreateImagePanel();
+            AddFormRow(row++, _lblImage, _imagePanel);
+
             // Is Active
             _lblIsActive = CreateLabel("Active:");
             _chkIsActive = new CheckBox
@@ -274,6 +301,61 @@ namespace RMS_UI.Forms
             AddFormRow(row++, _lblIsActive, _chkIsActive);
 
             _contentPanel.Controls.Add(_formLayout);
+        }
+
+        private void CreateImagePanel()
+        {
+            _imagePanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Height = 110
+            };
+
+            // PictureBox for image preview
+            _pictureBox = new PictureBox
+            {
+                Size = new Size(100, 100),
+                Location = new Point(0, 5),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.FromArgb(248, 250, 252),
+                Image = ImageManager.GetPlaceholderImage()
+            };
+
+            // Upload button
+            _btnUploadImage = new Button
+            {
+                Text = "📁 Upload",
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9F),
+                Size = new Size(90, 32),
+                Location = new Point(110, 20),
+                Cursor = Cursors.Hand,
+                BackColor = Color.FromArgb(59, 130, 246),
+                ForeColor = Color.White
+            };
+            _btnUploadImage.FlatAppearance.BorderSize = 0;
+            _btnUploadImage.Click += BtnUploadImage_Click;
+
+            // Remove button
+            _btnRemoveImage = new Button
+            {
+                Text = "🗑️ Remove",
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9F),
+                Size = new Size(90, 32),
+                Location = new Point(110, 58),
+                Cursor = Cursors.Hand,
+                BackColor = Color.FromArgb(239, 68, 68),
+                ForeColor = Color.White,
+                Enabled = false
+            };
+            _btnRemoveImage.FlatAppearance.BorderSize = 0;
+            _btnRemoveImage.Click += BtnRemoveImage_Click;
+
+            _imagePanel.Controls.Add(_pictureBox);
+            _imagePanel.Controls.Add(_btnUploadImage);
+            _imagePanel.Controls.Add(_btnRemoveImage);
         }
 
         private Label CreateLabel(string text)
@@ -450,6 +532,32 @@ namespace RMS_UI.Forms
             _txtDescription.Text = _product.Description ?? "";
             _chkIsActive.Checked = _product.IsActive;
 
+            // Load product image
+            if (!string.IsNullOrEmpty(_product.ImagePath))
+            {
+                try
+                {
+                    var image = ImageManager.LoadPreview(_product.ImagePath);
+                    if (image != null)
+                    {
+                        // Dispose old image first
+                        if (_pictureBox.Image != null)
+                        {
+                            var oldImage = _pictureBox.Image;
+                            _pictureBox.Image = null;
+                            oldImage.Dispose();
+                        }
+                        _pictureBox.Image = image;
+                        _btnRemoveImage.Enabled = true;
+                    }
+                }
+                catch
+                {
+                    // If image loading fails, use placeholder
+                    _pictureBox.Image = ImageManager.GetPlaceholderImage();
+                }
+            }
+
             // Select Category
             for (int i = 0; i < _cmbCategory.Items.Count; i++)
             {
@@ -472,6 +580,59 @@ namespace RMS_UI.Forms
                     }
                 }
             }
+        }
+        #endregion
+
+        #region Image Handlers
+        private void BtnUploadImage_Click(object? sender, EventArgs e)
+        {
+            using var openDialog = new OpenFileDialog
+            {
+                Title = "Select Product Image",
+                Filter = ImageManager.GetImageFileFilter(),
+                FilterIndex = 1
+            };
+
+            if (openDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = openDialog.FileName;
+
+                // Validate file
+                if (!ImageManager.IsValidImageFile(filePath, out string errorMessage))
+                {
+                    MessageBox.Show(errorMessage, "Invalid Image", 
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                try
+                {
+                    // Load preview into PictureBox
+                    var image = ImageManager.LoadPreview(filePath);
+                    if (image != null)
+                    {
+                        _pictureBox.Image?.Dispose();
+                        _pictureBox.Image = image;
+                        _selectedImagePath = filePath;
+                        _imageRemoved = false;
+                        _btnRemoveImage.Enabled = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading image: {ex.Message}", 
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void BtnRemoveImage_Click(object? sender, EventArgs e)
+        {
+            _pictureBox.Image?.Dispose();
+            _pictureBox.Image = ImageManager.GetPlaceholderImage();
+            _selectedImagePath = null;
+            _imageRemoved = true;
+            _btnRemoveImage.Enabled = false;
         }
         #endregion
 
@@ -556,6 +717,25 @@ namespace RMS_UI.Forms
                 _product.ReorderLevel = (int)_numReorderLevel.Value;
                 _product.Description = string.IsNullOrWhiteSpace(_txtDescription.Text) ? null : _txtDescription.Text.Trim();
                 _product.IsActive = _chkIsActive.Checked;
+
+                // Handle image changes
+                if (_imageRemoved && !string.IsNullOrEmpty(_product.ImagePath))
+                {
+                    // Delete old image file
+                    ImageManager.DeleteImage(_product.ImagePath);
+                    _product.ImagePath = null;
+                }
+                else if (!string.IsNullOrEmpty(_selectedImagePath))
+                {
+                    // Delete old image if exists
+                    if (!string.IsNullOrEmpty(_product.ImagePath))
+                    {
+                        ImageManager.DeleteImage(_product.ImagePath);
+                    }
+                    
+                    // Save new image
+                    _product.ImagePath = ImageManager.SaveProductImage(_selectedImagePath);
+                }
 
                 if (_product.Save())
                 {

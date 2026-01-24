@@ -267,6 +267,9 @@ namespace RMS_UI.Controls
 
         private void ConfigureGridColumns()
         {
+            // Add image column after checkbox column (only if not exists)
+            _dataGrid.AddImageColumn("ProductImage", "", 55, 1);
+
             _dataGrid.ConfigureColumn("ProductID", "ID", 70, true,
                 DataGridViewContentAlignment.MiddleCenter, "Consolas", 9.5f);
             _dataGrid.ConfigureColumn("ProductName", "Product Name", 200, true,
@@ -289,9 +292,60 @@ namespace RMS_UI.Controls
             // Enable sorting
             foreach (DataGridViewColumn col in _dataGrid.DataGridView.Columns)
             {
-                if (col.Name != "SelectCheckbox")
+                if (col.Name != "SelectCheckbox" && col.Name != "ProductImage")
                     col.SortMode = DataGridViewColumnSortMode.Automatic;
             }
+
+            // Load product images AFTER configuring columns
+            LoadProductImages();
+        }
+
+        private void LoadProductImages()
+        {
+            var dgv = _dataGrid.DataGridView;
+            if (dgv.Columns["ProductImage"] == null || dgv.Columns["ImagePath"] == null)
+                return;
+
+            // Use BeginInvoke to ensure the grid is fully loaded before setting images
+            if (dgv.IsHandleCreated)
+            {
+                dgv.BeginInvoke(new Action(() => SetProductImages(dgv)));
+            }
+            else
+            {
+                SetProductImages(dgv);
+            }
+        }
+
+        private void SetProductImages(DataGridView dgv)
+        {
+            foreach (DataGridViewRow row in dgv.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                try
+                {
+                    // Dispose old image if exists
+                    if (row.Cells["ProductImage"]?.Value is Image oldImage)
+                    {
+                        row.Cells["ProductImage"].Value = null;
+                        oldImage.Dispose();
+                    }
+
+                    var pathValue = row.Cells["ImagePath"]?.Value;
+                    string? imagePath = (pathValue != null && pathValue != DBNull.Value) 
+                        ? pathValue.ToString() 
+                        : null;
+
+                    row.Cells["ProductImage"].Value = ImageManager.LoadThumbnail(imagePath);
+                }
+                catch
+                {
+                    row.Cells["ProductImage"].Value = ImageManager.GetPlaceholderImage(50);
+                }
+            }
+            
+            dgv.Refresh();
         }
         #endregion
 
@@ -315,9 +369,20 @@ namespace RMS_UI.Controls
         {
             if (e.RowIndex >= 0)
             {
-                var row = _dataGrid.DataGridView.Rows[e.RowIndex];
-                if (row.Cells["ProductID"]?.Value is int productId)
+                // Skip if double-clicked on image column
+                if (e.ColumnIndex >= 0)
                 {
+                    var columnName = _dataGrid.DataGridView.Columns[e.ColumnIndex].Name;
+                    if (columnName == "ProductImage" || columnName == "SelectCheckbox")
+                        return;
+                }
+
+                var row = _dataGrid.DataGridView.Rows[e.RowIndex];
+                var productIdValue = row.Cells["ProductID"]?.Value;
+                
+                if (productIdValue != null && productIdValue != DBNull.Value)
+                {
+                    int productId = Convert.ToInt32(productIdValue);
                     OpenProductDialog(productId);
                 }
             }

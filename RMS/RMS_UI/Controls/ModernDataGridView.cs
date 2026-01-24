@@ -106,6 +106,18 @@ namespace RMS_UI.Controls
             InitializeComponent();
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
+            
+            // Handle DataError to prevent error dialog for image columns
+            _dataGridView.DataError += DataGridView_DataError;
+        }
+
+        private void DataGridView_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+        {
+            // Suppress errors for image columns (FormatException when cell value is not an image)
+            if (e.Exception is FormatException)
+            {
+                e.ThrowException = false;
+            }
         }
 
         private void LayoutPaginationControls()
@@ -276,6 +288,77 @@ namespace RMS_UI.Controls
             };
 
             _dataGridView.Columns.Insert(0, checkColumn);
+        }
+
+        /// <summary>
+        /// Adds an image column for displaying product thumbnails
+        /// </summary>
+        /// <param name="columnName">Name of the column</param>
+        /// <param name="headerText">Header text to display</param>
+        /// <param name="width">Column width (default 60)</param>
+        /// <param name="insertIndex">Index to insert at. Use -1 to add at the end.</param>
+        public void AddImageColumn(string columnName = "ProductImage", string headerText = "", 
+            int width = 60, int insertIndex = -1)
+        {
+            if (_dataGridView.Columns[columnName] != null) return;
+
+            var imageColumn = new DataGridViewImageColumn
+            {
+                Name = columnName,
+                HeaderText = headerText,
+                Width = width,
+                ImageLayout = DataGridViewImageCellLayout.Zoom,
+                ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                ValuesAreIcons = false,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
+                    Padding = new Padding(4),
+                    NullValue = null // Prevent default "X" icon for null values
+                }
+            };
+
+            // Add at the end if insertIndex is -1 or greater than column count
+            if (insertIndex < 0 || insertIndex >= _dataGridView.Columns.Count)
+            {
+                _dataGridView.Columns.Add(imageColumn);
+            }
+            else
+            {
+                _dataGridView.Columns.Insert(insertIndex, imageColumn);
+            }
+        }
+
+        /// <summary>
+        /// Loads images for a specific column from image paths
+        /// </summary>
+        /// <param name="imageColumnName">Name of the image column</param>
+        /// <param name="pathColumnName">Name of the column containing image paths</param>
+        /// <param name="loadImageFunc">Function to load image from path (should return thumbnail)</param>
+        public void LoadImagesFromPaths(string imageColumnName, string pathColumnName, 
+            Func<string?, Image> loadImageFunc)
+        {
+            if (_dataGridView.Columns[imageColumnName] == null || 
+                _dataGridView.Columns[pathColumnName] == null)
+                return;
+
+            foreach (DataGridViewRow row in _dataGridView.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                var pathValue = row.Cells[pathColumnName]?.Value;
+                string? imagePath = pathValue?.ToString();
+                
+                try
+                {
+                    row.Cells[imageColumnName].Value = loadImageFunc(imagePath);
+                }
+                catch
+                {
+                    row.Cells[imageColumnName].Value = loadImageFunc(null);
+                }
+            }
         }
 
         /// <summary>

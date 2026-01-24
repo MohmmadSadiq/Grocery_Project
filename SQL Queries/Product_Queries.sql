@@ -5,6 +5,7 @@ CREATE PROCEDURE spProduct_AddNew
     @Description NVARCHAR(MAX),
     @IsActive BIT,
     @ReorderLevel INT,
+    @ImagePath NVARCHAR(MAX) = NULL,
     @CreatedByUserID INT,
     @NewProductID INT OUTPUT
 AS
@@ -12,11 +13,11 @@ BEGIN
     SET NOCOUNT ON;
 
     INSERT INTO Products (
-        ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, CreatedByUserID
+        ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, ImagePath, CreatedByUserID
         , CreatedDate , IsDeleted
     )
     VALUES (
-        @ProductName, @CategoryID, @BrandID, @Description, @IsActive, @ReorderLevel, @CreatedByUserID
+        @ProductName, @CategoryID, @BrandID, @Description, @IsActive, @ReorderLevel, @ImagePath, @CreatedByUserID
         , GETDATE() , 0
     );
 
@@ -28,7 +29,7 @@ CREATE PROCEDURE spProduct_GetAll AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT ProductID, ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID FROM Products WHERE IsDeleted = 0;
+    SELECT ProductID, ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, ImagePath, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID FROM Products WHERE IsDeleted = 0;
 END
 GO
 
@@ -38,7 +39,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT ProductID, ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID FROM Products WHERE ProductID = @ProductID AND IsDeleted = 0;
+    SELECT ProductID, ProductName, CategoryID, BrandID, Description, IsActive, ReorderLevel, ImagePath, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID FROM Products WHERE ProductID = @ProductID AND IsDeleted = 0;
 END
 GO
 
@@ -50,6 +51,7 @@ CREATE PROCEDURE spProduct_Update
     @Description NVARCHAR(MAX),
     @IsActive BIT,
     @ReorderLevel INT,
+    @ImagePath NVARCHAR(MAX) = NULL,
     @UpdatedByUserID INT
 AS
 BEGIN
@@ -62,8 +64,8 @@ BEGIN
         Description = @Description,
         IsActive = @IsActive,
         ReorderLevel = @ReorderLevel,
-        UpdatedByUserID = @UpdatedByUserID
-,
+        ImagePath = @ImagePath,
+        UpdatedByUserID = @UpdatedByUserID,
         UpdatedDate = GETDATE()
     WHERE ProductID = @ProductID;
     IF @@ROWCOUNT > 0 RETURN 1 ELSE RETURN 0
@@ -146,7 +148,7 @@ IsActive]
 ImagePath]
 */
 
-ALTER VIEW ProductView
+Create VIEW ProductView
 AS
 SELECT 
     Products.ProductID, 
@@ -162,7 +164,7 @@ SELECT
     Companies.CompanyName
 FROM Brands 
     INNER JOIN Companies ON Brands.CompanyID = Companies.CompanyID 
-    INNER JOIN Products ON Brands.BrandID = Products.BrandID 
+    RIGHT JOIN Products ON Brands.BrandID = Products.BrandID 
     INNER JOIN Categories ON Products.CategoryID = Categories.CategoryID;
 GO
 
@@ -202,8 +204,46 @@ BEGIN
 END
 GO
 
+--ALTER PROCEDURE sp_SearchProductsPages
+--    @SearchText NVARCHAR(100) = NULL,
+--    @CategoryId INT = NULL,
+--    @IsActive   BIT = NULL,
+--    @PageNumber INT = 1,
+--    @PageSize   INT = 20,
+--    @SortBy     NVARCHAR(50) = 'Name'
+--AS
+--BEGIN
+--    SET NOCOUNT ON;
+--    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+--    -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ View
+--    -- ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ (Indexed View)ï¿½ ï¿½ï¿½ï¿½ (NOEXPAND) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ SQL
+--    SELECT 
+--        ProductID,
+--        ProductName,
+--        CategoryName,
+--        BrandName,
+--        ReorderLevel,
+--        IsActive,
+--        ImagePath,
+--		CompanyName,
+--        COUNT(*) OVER() AS TotalCount
+--    FROM ProductView 
+--    WHERE 
+--        (@IsActive IS NULL OR IsActive = @IsActive)
+--        AND (@CategoryId IS NULL OR CategoryID = @CategoryId)
+--        AND (@SearchText IS NULL OR (
+--            ProductName = @SearchText 
+--        ))
+--    ORDER BY 
+--		CASE WHEN @SortBy = 'ID' THEN ProductID END ASC,
+--        CASE WHEN @SortBy = 'Name' THEN ProductName END ASC
+--    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+--END
+
 ALTER PROCEDURE sp_SearchProductsPages
     @SearchText NVARCHAR(100) = NULL,
+    @SearchBy   NVARCHAR(50) = 'Name',  -- ï¿½ï¿½ï¿½ï¿½
     @CategoryId INT = NULL,
     @IsActive   BIT = NULL,
     @PageNumber INT = 1,
@@ -214,8 +254,6 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
 
-    -- ÇáÞÑÇÁÉ ãÈÇÔÑÉ ãä ÇáÜ View
-    -- ÅÐÇ ÇÓÊÎÏãÊ ÇáÍá ÇáÃæá (Indexed View)¡ ÃÖÝ (NOEXPAND) ááÊÃßÏ ãä ÇÓÊÎÏÇã ÇáÝåÑÓ Ýí ÈÚÖ äÓÎ SQL
     SELECT 
         ProductID,
         ProductName,
@@ -224,16 +262,18 @@ BEGIN
         ReorderLevel,
         IsActive,
         ImagePath,
+        CompanyName,
         COUNT(*) OVER() AS TotalCount
     FROM ProductView 
     WHERE 
         (@IsActive IS NULL OR IsActive = @IsActive)
         AND (@CategoryId IS NULL OR CategoryID = @CategoryId)
-        AND (@SearchText IS NULL OR (
-            ProductName = @SearchText 
+        AND (@SearchText IS NULL OR @SearchText = '' OR (
+            (@SearchBy = 'Name' AND ProductName LIKE '%' + @SearchText + '%')
+            OR (@SearchBy = 'ID' AND CAST(ProductID AS NVARCHAR(20)) LIKE '%' + @SearchText + '%')
         ))
     ORDER BY 
-		CASE WHEN @SortBy = 'ID' THEN ProductID END ASC,
+        CASE WHEN @SortBy = 'ID' THEN ProductID END ASC,
         CASE WHEN @SortBy = 'Name' THEN ProductName END ASC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 END
