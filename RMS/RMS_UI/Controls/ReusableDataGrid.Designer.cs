@@ -13,7 +13,6 @@ namespace RMS_UI.Controls
         private System.Windows.Forms.Panel _searchPanel;
         private ModernDataGridView _gridView;
         private System.Windows.Forms.Panel _emptyStatePanel;
-        private System.Windows.Forms.ContextMenuStrip _contextMenu;
         // Dynamic controls - created by RecreateSearchControls()
         private System.Windows.Forms.ComboBox _cmbSearchField;
         private System.Windows.Forms.TextBox _txtSearch;
@@ -33,7 +32,7 @@ namespace RMS_UI.Controls
         {
             if (disposing)
             {
-                if (_contextMenu != null) _contextMenu.Dispose();
+                // Context menu is now owned by _gridView, disposed automatically
                 if (components != null) components.Dispose();
             }
             base.Dispose(disposing);

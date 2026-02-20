@@ -5,7 +5,7 @@
  Script    : Database & Core DDL
  Description:
      Creates the RMS database and all core tables, constraints, indexes,
-      for a portfolio‑grade RMS schema.
+      for a RMS Retail management system schema.
 
  Author    : Mohammed Sadiq Al-Shaepi
  CreatedOn : 2025-12-29
@@ -554,6 +554,9 @@ CREATE TABLE PurchaseProductBatches (
     ProductionDate DATE             NULL,       -- Manufacturing/production date if applicable
     ExpiryDate     DATE             NULL,       -- Expiry date for perishable items
     BatchNumber    NVARCHAR(50)     NULL,       -- Supplier or internal batch number
+    
+    -- Soft Delete Support
+    IsDeleted      BIT              DEFAULT 0,  -- 1 = Logically deleted, 0 = Active
 
     CONSTRAINT PK_PurchaseProductBatches PRIMARY KEY CLUSTERED (BatchID),
     CONSTRAINT FK_Batches_Purchases    FOREIGN KEY (PurchaseID)    REFERENCES Purchases(PurchaseID),
@@ -561,6 +564,7 @@ CREATE TABLE PurchaseProductBatches (
 );
 
 CREATE NONCLUSTERED INDEX IX_Batches_ExpiryDate ON PurchaseProductBatches(ExpiryDate);
+CREATE NONCLUSTERED INDEX IX_Batches_IsDeleted ON PurchaseProductBatches(IsDeleted);
 
 -- =============================================
 -- 6. Table: Sales (Outflow Header)
@@ -696,6 +700,7 @@ CREATE TABLE Suppliers (
     CreatedByUserID INT           NULL,
     UpdatedDate  DATETIME         DEFAULT GETDATE(),
     UpdatedByUserID INT           NULL,
+	IsDeleted         BIT              DEFAULT 0,
 
     CONSTRAINT PK_Suppliers PRIMARY KEY CLUSTERED (SupplierID),
     CONSTRAINT FK_Suppliers_People     FOREIGN KEY (PersonID)  REFERENCES People(PersonID),
@@ -727,12 +732,15 @@ CREATE TABLE Payments (
     CreatedByUserID INT               NULL,
     UpdatedDate     DATETIME          DEFAULT GETDATE(),
     UpdatedByUserID INT               NULL,
+	IsDeleted         BIT              DEFAULT 0,
 
     CONSTRAINT PK_Payments PRIMARY KEY CLUSTERED (PaymentID),
     CONSTRAINT FK_Payments_Methods   FOREIGN KEY (PaymentMethodID) REFERENCES PaymentMethods(PaymentMethodID),
     CONSTRAINT FK_Payments_CreatedBy FOREIGN KEY (CreatedByUserID) REFERENCES Users(UserID),
     CONSTRAINT FK_Payments_UpdatedBy FOREIGN KEY (UpdatedByUserID) REFERENCES Users(UserID)
 );
+
+
 
 
 -- =============================================
@@ -866,6 +874,7 @@ CREATE TABLE PaymentAllocations (
     
     CreatedDate DATETIME DEFAULT GETDATE(),
     CreatedByUserID INT NULL,
+	IsDeleted         BIT              DEFAULT 0,
 
     CONSTRAINT PK_PaymentAllocations PRIMARY KEY CLUSTERED (AllocationID),
     
@@ -873,7 +882,6 @@ CREATE TABLE PaymentAllocations (
     CONSTRAINT FK_Allocations_Payments FOREIGN KEY (PaymentID) REFERENCES Payments(PaymentID),
     CONSTRAINT FK_Allocations_Transactions FOREIGN KEY (TransactionID) REFERENCES Transactions(TransactionID)
 );
-
 -- =============================================
 -- 2. Indexes for Performance
 -- Description: These are crucial because you will query this table heavily from both sides.

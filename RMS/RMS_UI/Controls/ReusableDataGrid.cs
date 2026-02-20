@@ -93,7 +93,11 @@ namespace RMS_UI.Controls
         [Category("Behavior")]
         [DefaultValue(false)]
         [Description("Set to true to enable context menu for bulk actions.")]
-        public bool ShowContextMenu { get; set; } = false;
+        public bool ShowContextMenu
+        {
+            get => _gridView.ShowContextMenu;
+            set => _gridView.ShowContextMenu = value;
+        }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Browsable(false)]
@@ -102,7 +106,7 @@ namespace RMS_UI.Controls
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Browsable(false)]
-        public ContextMenuStrip BulkActionsMenu => _contextMenu;
+        public ContextMenuStrip BulkActionsMenu => _gridView.ContextMenu;
         #endregion
 
         #region Events
@@ -127,7 +131,13 @@ namespace RMS_UI.Controls
             InitializeComponent();
             // Don't create default tabs/search - let calling code configure via SetTabs/SetSearchFields
             CreateEmptyStatePanel();
-            CreateContextMenu();
+            
+            // Wire up context menu events from _gridView to maintain backwards compatibility
+            _gridView.ActivateSelected += (s, e) => ActivateSelected?.Invoke(this, e);
+            _gridView.DeactivateSelected += (s, e) => DeactivateSelected?.Invoke(this, e);
+            _gridView.ExportToExcelSelected += (s, e) => ExportToExcelSelected?.Invoke(this, e);
+            _gridView.DeleteSelected += (s, e) => DeleteSelected?.Invoke(this, e);
+            
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
         }
@@ -626,38 +636,11 @@ namespace RMS_UI.Controls
         }
         #endregion
 
-        #region Context Menu
-        private void CreateContextMenu()
-        {
-            _contextMenu = new ContextMenuStrip();
-            _contextMenu.Font = new Font("Segoe UI", 9.5F);
-
-            // Opening event - check if rows are selected (only if context menu is enabled)
-            _contextMenu.Opening += (s, e) =>
-            {
-                if (!ShowContextMenu || _contextMenu.Items.Count == 0)
-                {
-                    e.Cancel = true;
-                    return;
-                }
-                
-                var checkedRows = _gridView.GetCheckedRows();
-                if (checkedRows.Count == 0)
-                {
-                    e.Cancel = true;
-                }
-            };
-
-            _gridView.DataGridView.ContextMenuStrip = _contextMenu;
-        }
-
+        #region Context Menu (Wrappers - delegate to ModernDataGridView)
         /// <summary>
         /// Clears all context menu items to add custom ones.
         /// </summary>
-        public void ClearContextMenu()
-        {
-            _contextMenu.Items.Clear();
-        }
+        public void ClearContextMenu() => _gridView.ClearContextMenu();
 
         /// <summary>
         /// Adds a custom context menu item.
@@ -667,19 +650,20 @@ namespace RMS_UI.Controls
         /// <param name="isDelete">If true, shows in red color for delete actions</param>
         public void AddContextMenuItem(string text, EventHandler onClick, bool isDelete = false)
         {
-            var item = new ToolStripMenuItem(text, null, onClick);
-            if (isDelete)
-                item.ForeColor = Color.FromArgb(239, 68, 68);
-            _contextMenu.Items.Add(item);
+            // Generate a name from the text (remove emojis and special chars)
+            string name = new string(text.Where(c => char.IsLetterOrDigit(c)).ToArray());
+            _gridView.AddContextMenuItem(name, text, onClick, isDelete);
         }
 
         /// <summary>
         /// Adds a separator to the context menu.
         /// </summary>
-        public void AddContextMenuSeparator()
-        {
-            _contextMenu.Items.Add(new ToolStripSeparator());
-        }
+        public void AddContextMenuSeparator() => _gridView.AddContextMenuSeparator();
+
+        /// <summary>
+        /// Adds a "Select All" menu item that selects drag-selected rows or all rows.
+        /// </summary>
+        public void AddSelectAllMenuItem() => _gridView.AddSelectAllMenuItem();
 
         /// <summary>
         /// Adds standard status menu items (Change Status submenu with Activate/Deactivate, and Delete).
@@ -688,46 +672,9 @@ namespace RMS_UI.Controls
         /// <param name="hasDeactivate">Include Deactivate option</param>
         /// <param name="hasDelete">Include Delete option (shown in red)</param>
         /// <param name="hasExport">Include Export to Excel option</param>
-        public void AddStandardStatusMenuItems(bool hasActivate = true, bool hasDeactivate = true, bool hasDelete = true, bool hasExport = false)
-        {
-            if (hasActivate || hasDeactivate)
-            {
-                var changeStatusItem = new ToolStripMenuItem("Change Status");
-                
-                if (hasActivate)
-                {
-                    var activateItem = new ToolStripMenuItem("Activate", null, (s, e) => ActivateSelected?.Invoke(this, EventArgs.Empty));
-                    changeStatusItem.DropDownItems.Add(activateItem);
-                }
-                
-                if (hasDeactivate)
-                {
-                    var deactivateItem = new ToolStripMenuItem("Deactivate", null, (s, e) => DeactivateSelected?.Invoke(this, EventArgs.Empty));
-                    changeStatusItem.DropDownItems.Add(deactivateItem);
-                }
-                
-                _contextMenu.Items.Add(changeStatusItem);
-            }
-
-            if (hasExport)
-            {
-                if (_contextMenu.Items.Count > 0)
-                    _contextMenu.Items.Add(new ToolStripSeparator());
-                    
-                var exportItem = new ToolStripMenuItem("Export to Excel", null, (s, e) => ExportToExcelSelected?.Invoke(this, EventArgs.Empty));
-                _contextMenu.Items.Add(exportItem);
-            }
-
-            if (hasDelete)
-            {
-                if (_contextMenu.Items.Count > 0)
-                    _contextMenu.Items.Add(new ToolStripSeparator());
-                    
-                var deleteItem = new ToolStripMenuItem("Delete Selected", null, (s, e) => DeleteSelected?.Invoke(this, EventArgs.Empty));
-                deleteItem.ForeColor = Color.FromArgb(239, 68, 68);
-                _contextMenu.Items.Add(deleteItem);
-            }
-        }
+        public void AddStandardStatusMenuItems(bool hasActivate = true, bool hasDeactivate = true, 
+                                               bool hasDelete = true, bool hasExport = false)
+            => _gridView.AddStandardStatusMenuItems(hasActivate, hasDeactivate, hasDelete, hasExport);
         #endregion
 
         #region Public Methods
@@ -990,25 +937,9 @@ namespace RMS_UI.Controls
                 _btnClearFilters.BackColor = colors.Primary;
             }
 
-            // Context Menu
-            if (_contextMenu != null)
-            {
-                _contextMenu.BackColor = colors.ContentBackground;
-                _contextMenu.ForeColor = colors.PrimaryText;
+            // Context menu theming is now handled by ModernDataGridView.ApplyTheme()
 
-                foreach (ToolStripItem item in _contextMenu.Items)
-                {
-                    if (item is ToolStripMenuItem menuItem)
-                    {
-                        if (menuItem.Text == "Delete Selected")
-                            menuItem.ForeColor = Color.FromArgb(239, 68, 68);
-                        else
-                            menuItem.ForeColor = colors.PrimaryText;
-                    }
-                }
-            }
-
-            // Apply theme to grid
+            // Apply theme to grid (this also applies theme to context menu)
             _gridView?.ApplyTheme();
 
             Invalidate(true);

@@ -15,6 +15,7 @@ namespace RMS_UI.Controls
         private System.Windows.Forms.Label _lblPageInfo;
         private System.Windows.Forms.ComboBox _cmbPageSize;
         private System.Windows.Forms.Label _lblPageSizeLabel;
+        private System.Windows.Forms.ContextMenuStrip _contextMenu;
         #endregion
 
         /// <summary> 
@@ -23,9 +24,10 @@ namespace RMS_UI.Controls
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                if (_contextMenu != null) _contextMenu.Dispose();
+                if (components != null) components.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -57,25 +59,23 @@ namespace RMS_UI.Controls
             _dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             _dataGridView.BackgroundColor = Color.White;
             _dataGridView.BorderStyle = BorderStyle.None;
-            _dataGridView.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            _dataGridView.CellBorderStyle = DataGridViewCellBorderStyle.None;
             _dataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             _dataGridView.ColumnHeadersHeight = 45;
             _dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             _dataGridView.Dock = DockStyle.Fill;
+            _dataGridView.EditMode = DataGridViewEditMode.EditOnEnter;
             _dataGridView.EnableHeadersVisualStyles = false;
             _dataGridView.Font = new Font("Segoe UI", 9.5F);
-            _dataGridView.GridColor = Color.FromArgb(240, 240, 240);
+            _dataGridView.GridColor = Color.White;
             _dataGridView.Location = new Point(0, 0);
             _dataGridView.Name = "_dataGridView";
-            _dataGridView.ReadOnly = true;
             _dataGridView.RowHeadersVisible = false;
             _dataGridView.RowTemplate.Height = 40;
             _dataGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             _dataGridView.Size = new Size(800, 450);
             _dataGridView.TabIndex = 0;
             _dataGridView.CellDoubleClick += DataGridView_CellDoubleClick;
-            _dataGridView.CellMouseEnter += DataGridView_CellMouseEnter;
-            _dataGridView.CellMouseLeave += DataGridView_CellMouseLeave;
             _dataGridView.CellPainting += DataGridView_CellPainting;
             _dataGridView.SelectionChanged += DataGridView_SelectionChanged;
             // 

@@ -14,10 +14,10 @@ namespace RMS_UI.Controls
     /// All add/edit operations happen through ProductDialog.
     /// </summary>
     [DesignerCategory("UserControl")]
-    public partial class ProductsControl : UserControl
+    public partial class ProductsPage : UserControl
     {
         #region Constructor
-        public ProductsControl()
+        public ProductsPage()
         {
             InitializeComponent();
             CreateHeaderPanel();
@@ -26,7 +26,7 @@ namespace RMS_UI.Controls
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
         }
 
-        private void ProductsControl_Load(object sender, EventArgs e)
+        private void ProductsPage_Load(object sender, EventArgs e)
         {
             LoadProducts();
         }
@@ -64,12 +64,16 @@ namespace RMS_UI.Controls
             _dataGrid.ShowContextMenu = true;
 
             // Add context menu items
+            _dataGrid.AddSelectAllMenuItem(); // Select All / Select X items
             _dataGrid.AddStandardStatusMenuItems(hasActivate: true, hasDeactivate: true, hasDelete: true, hasExport: true);
             _dataGrid.AddContextMenuSeparator();
             _dataGrid.AddContextMenuItem("📁 Move to Category", (s, e) => DataGrid_MoveToCategorySelected(s!, e));
 
             // Wire up clear search event
             _dataGrid.ClearSearchClicked += DataGrid_ClearSearchClicked;
+
+            // Wire up Sorted event to reload images after sorting
+            _dataGrid.DataGridView.Sorted += (s, e) => LoadProductImages();
 
             // Finalize setup (adds checkbox column if enabled)
             _dataGrid.FinalizeSetup();
@@ -416,8 +420,9 @@ namespace RMS_UI.Controls
             BulkUpdateStatus(false);
         }
 
-        private void DataGrid_DeleteSelected(object sender, EventArgs e)
+        private void DataGrid_DeleteSelected(object? sender, EventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("[Delete] DataGrid_DeleteSelected called");
             BulkDelete();
         }
 
@@ -519,6 +524,8 @@ namespace RMS_UI.Controls
         private void BulkDelete()
         {
             var checkedRows = _dataGrid.GetCheckedRows();
+            System.Diagnostics.Debug.WriteLine($"[Delete] BulkDelete called - CheckedRows count: {checkedRows.Count}");
+            
             if (checkedRows.Count == 0)
             {
                 _notification.ShowWarning("Please select products to delete");

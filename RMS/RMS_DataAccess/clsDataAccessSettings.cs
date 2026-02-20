@@ -1,4 +1,4 @@
-﻿namespace DVLD_DataAccess
+﻿namespace RMS_DataAccess
 {
     static class clsDataAccessSettings
     {

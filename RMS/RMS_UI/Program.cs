@@ -1,3 +1,5 @@
+using RMS_UI.Peoples;
+
 namespace RMS_UI
 {
     internal static class Program
@@ -12,7 +14,7 @@ namespace RMS_UI
             // see https://aka.ms/applicationconfiguration.
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWX5fcnVRQ2BZUEx0WkBWYEs=");
             ApplicationConfiguration.Initialize();
-            Application.Run(new MainForm());
+            Application.Run(new frmPersonDialog(22));
         }
     }
 }

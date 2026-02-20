@@ -1,142 +1,356 @@
 ﻿using System;
-using System.Data;
+using System.Collections.Generic;
 using RMS_Business;
 
-// Simple console harness that fails fast on the first issue, with step-by-step logging.
-try
+internal class Program
 {
-	
-	Console.WriteLine("Running clsProduct smoke test...");
-	RunProductSmoke();
-	Console.WriteLine("clsProduct smoke test passed.\n");
-	Environment.Exit(0);
-}
-catch (Exception ex)
-{
-	Console.Error.WriteLine($"FAIL: {ex.Message}");
-	Environment.Exit(1);
-}
+    private static void Main()
+    {
+        Console.WriteLine("=== Testing clsPayment Full Application ===\n");
 
-static void RunCategorySmoke()
-{
-	var name = $"Test Category {Guid.NewGuid():N}";
-	var description = "Added via TestProject harness";
+        // 0. Testing Add Transactions first
+        TestAddTransactions();
 
-	var category = CreateCategoryInstance(name, description, createdByUserId: null);
-	Step("Save new category");
-	Ensure(category.Save(), "Save(AddNew) returned false");
-	Ensure(category.CategoryID > 0, "New category ID was not set");
+        Console.WriteLine("\n" + new string('=', 80) + "\n");
 
-	Step("Fetch category by ID");
-	var fetched = clsCategory.Find(category.CategoryID);
-	Ensure(fetched != null, "Find after add returned null");
-	Ensure(string.Equals(fetched!.CategoryName, name, StringComparison.Ordinal), "CategoryName mismatch after add");
-	Ensure(string.Equals(fetched.Description, description, StringComparison.Ordinal), "Description mismatch after add");
+        // 1. Testing Add with Allocations (using created transactions)
+        TestAddPaymentWithAllocations();
 
-	Step("Update category fields and save");
-	fetched.CategoryName = name + " updated";
-	fetched.Description = "Updated via harness";
-	Ensure(fetched.Save(), "Save(Update) returned false");
+        Console.WriteLine("\n" + new string('=', 80) + "\n");
 
-	Step("Fetch category after update");
-	var updated = clsCategory.Find(category.CategoryID);
-	Ensure(updated != null, "Find after update returned null");
-	Ensure(string.Equals(updated!.CategoryName, fetched.CategoryName, StringComparison.Ordinal), "Updated CategoryName mismatch");
-	Ensure(string.Equals(updated.Description, fetched.Description, StringComparison.Ordinal), "Updated Description mismatch");
+        // 2. Testing Read and Details
+        TestReadPayment();
 
-	Step("List all categories");
-	var all = clsCategory.GetAllCategory();
-	Ensure(all != null, "GetAllCategory returned null");
-	Ensure(all.Rows.Count > 0, "GetAllCategory returned zero rows");
+        Console.WriteLine("\n" + new string('=', 80) + "\n");
 
-	Step("Delete category");
-	Ensure(clsCategory.DeleteCategory(category.CategoryID), "DeleteCategory returned false");
-	var deleted = clsCategory.Find(category.CategoryID);
-	Ensure(deleted == null, "Find after delete should be null");
-}
+        // 3. Testing Update
+        TestUpdatePayment();
 
-static clsCategory CreateCategoryInstance(string name, string? description, int? createdByUserId)
-{
-	// clsCategory exposes only a non-public constructor; use reflection to get a fresh AddNew instance.
-	var instance = (clsCategory?)Activator.CreateInstance(typeof(clsCategory), nonPublic: true);
-	if (instance == null)
-		throw new InvalidOperationException("Could not create clsCategory instance.");
+        Console.WriteLine("\n" + new string('=', 80) + "\n");
 
-	instance.CategoryName = name;
-	instance.Description = description;
-	instance.CreatedByUserID = createdByUserId;
-	return instance;
-}
+        // 4. Testing Delete
+        TestDeletePayment();
 
-static void RunProductSmoke()
-{
-	var name = $"Test Product {Guid.NewGuid():N}";
-	var description = "Added via TestProject harness";
+        Console.WriteLine("\n=== Test Completed ===");
+    }
 
-	var product = CreateProductInstance(name, categoryId: null, brandId: null, description, isActive: true, reorderLevel: 5, createdByUserId: null);
-	Step("Save new product");
-	Ensure(product.Save(), "Save(AddNew) for product returned false");
-	Ensure(product.ProductID > 0, "New product ID was not set");
+    private static void TestAddTransactions()
+    {
+        Console.WriteLine("### 0. Testing Add Transactions ###\n");
 
-	Step("Fetch product by ID");
-	var fetched = clsProduct.Find(product.ProductID);
-	Ensure(fetched != null, "Find after product add returned null");
-	Ensure(string.Equals(fetched!.ProductName, name, StringComparison.Ordinal), "ProductName mismatch after add");
-	Ensure(string.Equals(fetched.Description, description, StringComparison.Ordinal), "Product Description mismatch after add");
-	Ensure(fetched.IsActive == true, "IsActive mismatch after add");
-	Ensure(fetched.ReorderLevel == 5, "ReorderLevel mismatch after add");
+        try
+        {
+            // Create first transaction
+            var transaction1 = new clsTransaction
+            {
+                TransactionDate = DateTime.Now,
+                TransactionType = clsTransaction.enTransactionType.Sale,
+                TransactionStatus = clsTransaction.enTransactionStatus.Completed,
+                TotalAmount = 600.00m,
+                Nots = "Test Sale Transaction 1",
+                CreatedByUserID = null,
+                Mode = clsTransaction.enMode.AddNew
+            };
 
-	Step("Update product fields and save");
-	fetched.ProductName = name + " updated";
-	fetched.Description = "Updated via harness";
-	fetched.IsActive = false;
-	fetched.ReorderLevel = 7;
-	fetched.UpdatedByUserID = null; // keep null unless you want to attribute updates to a user
-	Ensure(fetched.Save(), "Save(Update) for product returned false");
+            Console.WriteLine("Creating Transaction 1:");
+            Console.WriteLine($"   - Transaction Date: {transaction1.TransactionDate:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"   - Type: {transaction1.TransactionType}");
+            Console.WriteLine($"   - Status: {transaction1.TransactionStatus}");
+            Console.WriteLine($"   - Total Amount: {transaction1.TotalAmount:C2}");
+            Console.WriteLine($"   - Notes: {transaction1.Nots}");
 
-	Step("Fetch product after update");
-	var updated = clsProduct.Find(product.ProductID);
-	Ensure(updated != null, "Find after product update returned null");
-	Ensure(string.Equals(updated!.ProductName, fetched.ProductName, StringComparison.Ordinal), "Updated ProductName mismatch");
-	Ensure(string.Equals(updated.Description, fetched.Description, StringComparison.Ordinal), "Updated Product Description mismatch");
-	Ensure(updated.IsActive == fetched.IsActive, "Updated IsActive mismatch");
-	Ensure(updated.ReorderLevel == fetched.ReorderLevel, "Updated ReorderLevel mismatch");
+            if (transaction1.Save())
+            {
+                Console.WriteLine($"SUCCESS! Transaction 1 ID: {transaction1.TransactionID}\n");
+                _testTransactionIDs.Add(transaction1.TransactionID);
+            }
+            else
+            {
+                Console.WriteLine("FAILED! Could not add Transaction 1");
+                return;
+            }
 
-	Step("List all products");
-	var all = clsProduct.GetAllProduct();
-	Ensure(all != null, "GetAllProduct returned null");
-	Ensure(all.Rows.Count > 0, "GetAllProduct returned zero rows");
+            // Create second transaction
+            var transaction2 = new clsTransaction
+            {
+                TransactionDate = DateTime.Now,
+                TransactionType = clsTransaction.enTransactionType.Sale,
+                TransactionStatus = clsTransaction.enTransactionStatus.Completed,
+                TotalAmount = 400.00m,
+                Nots = "Test Sale Transaction 2",
+                CreatedByUserID = null,
+                Mode = clsTransaction.enMode.AddNew
+            };
 
-	Step("Delete product");
-	Ensure(clsProduct.DeleteProduct(product.ProductID, UpdatedByUserID: null), "DeleteProduct returned false");
-	var deleted = clsProduct.Find(product.ProductID);
-	Ensure(deleted == null, "Find after product delete should be null");
-}
+            Console.WriteLine("Creating Transaction 2:");
+            Console.WriteLine($"   - Transaction Date: {transaction2.TransactionDate:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"   - Type: {transaction2.TransactionType}");
+            Console.WriteLine($"   - Status: {transaction2.TransactionStatus}");
+            Console.WriteLine($"   - Total Amount: {transaction2.TotalAmount:C2}");
+            Console.WriteLine($"   - Notes: {transaction2.Nots}");
 
-static clsProduct CreateProductInstance(string name, int? categoryId, int? brandId, string? description, bool isActive, int reorderLevel, int? createdByUserId)
-{
-	// clsProduct also uses a non-public constructor; instantiate via reflection.
-	var instance = (clsProduct?)Activator.CreateInstance(typeof(clsProduct), nonPublic: true);
-	if (instance == null)
-		throw new InvalidOperationException("Could not create clsProduct instance.");
+            if (transaction2.Save())
+            {
+                Console.WriteLine($"SUCCESS! Transaction 2 ID: {transaction2.TransactionID}\n");
+                _testTransactionIDs.Add(transaction2.TransactionID);
+                Console.WriteLine($"Total Transactions Created: {_testTransactionIDs.Count}");
+            }
+            else
+            {
+                Console.WriteLine("FAILED! Could not add Transaction 2");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+    }
 
-	instance.ProductName = name;
-	instance.CategoryID = categoryId;
-	instance.BrandID = brandId;
-	instance.Description = description;
-	instance.IsActive = isActive;
-	instance.ReorderLevel = reorderLevel;
-	instance.CreatedByUserID = createdByUserId;
-	return instance;
-}
+    private static void TestAddPaymentWithAllocations()
+    {
+        Console.WriteLine("### 1. Testing Add Payment with Allocations ###\n");
 
-static void Ensure(bool condition, string message)
-{
-	if (!condition)
-		throw new InvalidOperationException(message);
-}
+        if (_testTransactionIDs.Count == 0)
+        {
+            Console.WriteLine("WARNING: No Transactions created (previous add failed)");
+            return;
+        }
 
-static void Step(string message)
-{
-	Console.WriteLine($"- {message}");
+        try
+        {
+            // Create new payment
+            var newPayment = new clsPayment
+            {
+                PaymentDate = DateTime.Now,
+                PaymentMethodID = 4,
+                PaymentAmount = 1000.00m,
+                Notes = "Test payment from suppliers",
+                CreatedByUserID = null,
+                Mode = clsPayment.enMode.AddNew
+            };
+
+            // Add allocations using created transactions
+            newPayment.Allocations.Add(new clsPaymentAllocation
+            {
+                TransactionID = _testTransactionIDs[0],
+                Amount = 600.00m
+            });
+
+            newPayment.Allocations.Add(new clsPaymentAllocation
+            {
+                TransactionID = _testTransactionIDs[1],
+                Amount = 400.00m
+            });
+
+            Console.WriteLine("Payment Data to Add:");
+            Console.WriteLine($"   - Payment Date: {newPayment.PaymentDate:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"   - Payment Method ID: {newPayment.PaymentMethodID}");
+            Console.WriteLine($"   - Total Amount: {newPayment.PaymentAmount:C2}");
+            Console.WriteLine($"   - Notes: {newPayment.Notes}");
+            Console.WriteLine($"   - Created by User ID: {newPayment.CreatedByUserID}");
+            Console.WriteLine($"\n   Allocations Details:");
+            foreach (var alloc in newPayment.Allocations)
+            {
+                Console.WriteLine($"      * Transaction ID: {alloc.TransactionID}, Amount: {alloc.Amount:C2}");
+            }
+
+            // Save payment
+            Console.WriteLine("\nSaving Payment...");
+            if (newPayment.Save())
+            {
+                Console.WriteLine($"SUCCESS! Payment ID: {newPayment.PaymentID}");
+                
+                // Save ID for later tests
+                _testPaymentID = newPayment.PaymentID;
+            }
+            else
+            {
+                Console.WriteLine("FAILED! Could not add payment!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+    }
+
+    private static void TestReadPayment()
+    {
+        Console.WriteLine("### 2. Testing Read Payment and Verify Details ###\n");
+
+        if (_testPaymentID == -1)
+        {
+            Console.WriteLine("WARNING: No Payment ID to read (previous add failed)");
+            return;
+        }
+
+        try
+        {
+            Console.WriteLine($"Searching for Payment ID: {_testPaymentID}...");
+            
+            var payment = clsPayment.Find(_testPaymentID);
+
+            if (payment != null)
+            {
+                Console.WriteLine("SUCCESS! Payment found!\n");
+
+                Console.WriteLine("Payment Data:");
+                Console.WriteLine($"   - Payment ID: {payment.PaymentID}");
+                Console.WriteLine($"   - Payment Date: {payment.PaymentDate:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine($"   - Payment Method ID: {payment.PaymentMethodID}");
+                Console.WriteLine($"   - Total Amount: {payment.PaymentAmount:C2}");
+                Console.WriteLine($"   - Notes: {payment.Notes}");
+                Console.WriteLine($"   - Created Date: {payment.CreatedDate:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine($"   - Created by User ID: {payment.CreatedByUserID}");
+
+                Console.WriteLine($"\nAllocations Count: {payment.Allocations.Count}");
+                if (payment.Allocations.Count > 0)
+                {
+                    Console.WriteLine("   Allocations Details:");
+                    decimal totalAllocated = 0;
+                    foreach (var alloc in payment.Allocations)
+                    {
+                        Console.WriteLine($"      * Allocation ID: {alloc.AllocationID}");
+                        Console.WriteLine($"        - Transaction ID: {alloc.TransactionID}");
+                        Console.WriteLine($"        - Amount: {alloc.Amount:C2}");
+                        Console.WriteLine($"        - Created Date: {alloc.CreatedDate:yyyy-MM-dd HH:mm:ss}");
+                        totalAllocated += alloc.Amount;
+                    }
+                    Console.WriteLine($"\n      Total Allocated: {totalAllocated:C2}");
+                    string matchStatus = totalAllocated == payment.PaymentAmount ? "MATCH with Total Amount" : "MISMATCH Warning!";
+                    Console.WriteLine($"      {matchStatus}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("FAILED! Payment not found!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+    }
+
+    private static void TestUpdatePayment()
+    {
+        Console.WriteLine("### 3. Testing Update Payment ###\n");
+
+        if (_testPaymentID == -1)
+        {
+            Console.WriteLine("WARNING: No Payment ID to update (previous add failed)");
+            return;
+        }
+
+        try
+        {
+            Console.WriteLine($"Searching for Payment ID: {_testPaymentID}...");
+            
+            var payment = clsPayment.Find(_testPaymentID);
+
+            if (payment != null)
+            {
+                Console.WriteLine("SUCCESS! Payment found for update\n");
+
+                Console.WriteLine("Old Data:");
+                Console.WriteLine($"   - Amount: {payment.PaymentAmount:C2}");
+                Console.WriteLine($"   - Notes: {payment.Notes}");
+
+                // Update data
+                payment.PaymentAmount = 1500.00m;
+                payment.Notes = "Updated Notes - Modified payment";
+                payment.UpdatedByUserID = 2;
+
+                Console.WriteLine("\nNew Data:");
+                Console.WriteLine($"   - Amount: {payment.PaymentAmount:C2}");
+                Console.WriteLine($"   - Notes: {payment.Notes}");
+
+                Console.WriteLine("\nSaving Updates...");
+                if (payment.Save())
+                {
+                    Console.WriteLine("SUCCESS! Payment updated!\n");
+
+                    // Verify updates by reading again
+                    Console.WriteLine("Re-reading to verify updates...");
+                    var updatedPayment = clsPayment.Find(_testPaymentID);
+                    if (updatedPayment != null)
+                    {
+                        Console.WriteLine("SUCCESS! Updates verified:");
+                        Console.WriteLine($"   - New Amount: {updatedPayment.PaymentAmount:C2}");
+                        Console.WriteLine($"   - New Notes: {updatedPayment.Notes}");
+                        Console.WriteLine($"   - Updated by User ID: {updatedPayment.UpdatedByUserID}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("FAILED! Could not update payment!");
+                }
+            }
+            else
+            {
+                Console.WriteLine("FAILED! Payment not found!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+    }
+
+    private static void TestDeletePayment()
+    {
+        Console.WriteLine("### 4. Testing Delete Payment and Verification ###\n");
+
+        if (_testPaymentID == -1)
+        {
+            Console.WriteLine("WARNING: No Payment ID to delete (previous add failed)");
+            return;
+        }
+
+        try
+        {
+            Console.WriteLine($"Searching for Payment ID: {_testPaymentID} before delete...");
+            
+            var paymentBefore = clsPayment.Find(_testPaymentID);
+            if (paymentBefore != null)
+            {
+                Console.WriteLine("SUCCESS! Payment found before delete");
+                Console.WriteLine($"   - ID: {paymentBefore.PaymentID}");
+                Console.WriteLine($"   - Amount: {paymentBefore.PaymentAmount:C2}");
+                Console.WriteLine($"   - Allocations Count: {paymentBefore.Allocations.Count}");
+            }
+
+            Console.WriteLine($"\nDeleting Payment ID: {_testPaymentID}...");
+            if (clsPayment.DeletePayment(_testPaymentID, 2))
+            {
+                Console.WriteLine("SUCCESS! Payment deleted!\n");
+
+                // Verify deletion by trying to read
+                Console.WriteLine("Re-reading after delete to verify...");
+                var paymentAfter = clsPayment.Find(_testPaymentID);
+                
+                if (paymentAfter == null)
+                {
+                    Console.WriteLine("SUCCESS! Verification passed: Payment successfully deleted from database!");
+                }
+                else
+                {
+                    Console.WriteLine("WARNING! Payment still exists in database after delete!");
+                    Console.WriteLine($"   - ID: {paymentAfter.PaymentID}");
+                    Console.WriteLine($"   - Amount: {paymentAfter.PaymentAmount:C2}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("FAILED! Could not delete payment!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+    }
+
+    private static int _testPaymentID = -1;
+    private static List<int> _testTransactionIDs = new List<int>();
 }

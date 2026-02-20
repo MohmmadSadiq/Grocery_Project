@@ -7,32 +7,131 @@ namespace RMS_Business
     {
         public enum enMode { AddNew = 0, Update = 1 };
         public enMode Mode = enMode.AddNew;
-        public int CompanyID { get; set; }
+        
+        public int CompanyID { get ; set; }
         public string CompanyName { get; set; }
-        public int? ContactPersonID { get; set; }
+        
+        private int? _contactPersonID;
+        private clsPerson? _contactPerson;
+        public int? ContactPersonID
+        {
+            get => _contactPersonID;
+            set
+            {
+                if (_contactPersonID != value)
+                    _contactPerson = null;
+                _contactPersonID = value;
+            }
+        }
+        public clsPerson? ContactPerson
+        {
+            get
+            {
+                if (_contactPersonID == null)
+                    _contactPerson = null;
+                else if (_contactPerson == null && _contactPersonID != null && _contactPersonID > 0)
+                    _contactPerson = clsPerson.Find(_contactPersonID.Value);
+                
+                return _contactPerson;
+            }
+        }
+        
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }
-        public int? CountryID { get; set; }
+        
         public string? CommercialNumber { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int? CreatedByUserID { get; set; }
+        
+        private int? _createdByUserID;
+        private clsUser? _createdByUser;
+        public int? CreatedByUserID
+        {
+            get => _createdByUserID;
+            set
+            {
+                if (_createdByUserID != value)
+                    _createdByUser = null;
+                _createdByUserID = value;
+            }
+        }
+        public clsUser? CreatedByUser
+        {
+            get
+            {
+                if (_createdByUserID == null)
+                    _createdByUser = null;
+                else if (_createdByUser == null && _createdByUserID != null && _createdByUserID > 0)
+                    _createdByUser = clsUser.Find(_createdByUserID.Value);
+                
+                return _createdByUser;
+            }
+        }
+        
         public DateTime UpdatedDate { get; set; }
-        public int? UpdatedByUserID { get; set; }
+        
+        private int? _updatedByUserID;
+        private clsUser? _updatedByUser;
+        public int? UpdatedByUserID
+        {
+            get => _updatedByUserID;
+            set
+            {
+                if (_updatedByUserID != value)
+                    _updatedByUser = null;
+                _updatedByUserID = value;
+            }
+        }
+        public clsUser? UpdatedByUser
+        {
+            get
+            {
+                if (_updatedByUserID == null)
+                    _updatedByUser = null;
+                else if (_updatedByUser == null && _updatedByUserID != null && _updatedByUserID > 0)
+                    _updatedByUser = clsUser.Find(_updatedByUserID.Value);
+                
+                return _updatedByUser;
+            }
+        }
+        
+        private int? _countryID;
+        private clsCountry? _country;
+        public int? CountryID { get => _countryID ;
+        set
+            {
+                if(_countryID != value)
+                    _country = null;
+                _countryID = value;
+            }
+         }
+        public clsCountry? Country
+        {
+            get
+            {
+                if (_countryID == null)
+                   _country = null;
+                else if(_country == null && _countryID != null && _countryID > 0)
+                    _country = clsCountry.Find(_countryID.Value);
+                 
+                return _country; 
+            }
+            
+        } 
         public clsCompany()
         {
             CompanyID = -1;
             CompanyName = string.Empty;
-            ContactPersonID = null;
+            _contactPersonID = null;
             Phone = null;
             Email = null;
             Address = null;
             CountryID = null;
             CommercialNumber = null;
             CreatedDate = DateTime.MinValue;
-            CreatedByUserID = null;
+            _createdByUserID = null;
             UpdatedDate = DateTime.MinValue;
-            UpdatedByUserID = null;
+            _updatedByUserID = null;
             Mode = enMode.AddNew;
         }
         public bool Save()

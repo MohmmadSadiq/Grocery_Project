@@ -34,12 +34,14 @@ namespace RMS_UI.Views
         {
             // Store original full texts
             _buttonFullTexts[btnDashboard] = "🏠  Dashboard";
+            _buttonFullTexts[btnPOS] = "💰  Point of Sale";
             _buttonFullTexts[btnProducts] = "📦  Products";
             _buttonFullTexts[btnReports] = "📊  Reports";
             _buttonFullTexts[btnSettings] = "⚙️  Settings";
 
             // Wire up button click events
             btnDashboard.Click += (s, e) => OnMenuItemClicked("Dashboard");
+            btnPOS.Click += (s, e) => OnMenuItemClicked("POS");
             btnProducts.Click += (s, e) => OnMenuItemClicked("Products");
             btnReports.Click += (s, e) => OnMenuItemClicked("Reports");
             btnSettings.Click += (s, e) => OnMenuItemClicked("Settings");
@@ -81,7 +83,7 @@ namespace RMS_UI.Views
 
         private void UpdateButtonsAlignment()
         {
-            var buttons = new[] { btnDashboard, btnProducts, btnReports, btnSettings };
+            var buttons = new[] { btnDashboard, btnPOS, btnProducts, btnReports, btnSettings };
             
             foreach (var btn in buttons)
             {
@@ -135,8 +137,11 @@ namespace RMS_UI.Views
         {
             switch (menuItem)
             {
+                case "POS":
+                    LoadContent(new POSControl());
+                    break;
                 case "Products":
-                    LoadContent(new ProductsControl());
+                    LoadContent(new ProductsPage());
                     break;
                 case "Dashboard":
                     ShowWelcome();

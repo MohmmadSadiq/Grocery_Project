@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Linq; // Required for FullName logic
 using RMS_DataAccess;
 
 namespace RMS_Business
@@ -43,8 +42,83 @@ namespace RMS_Business
         public string? ImagePath { set; get; }
 
         // Audit Columns
-        public int? CreatedByUserID { set; get; }
-        public int? UpdatedByUserID { set; get; }
+        public DateTime? CreatedDate { set; get; }
+        
+        private int? _createdByUserID;
+        private clsUser? _createdByUser;
+        public int? CreatedByUserID 
+        { 
+            get => _createdByUserID;
+            set
+            {
+                if(_createdByUserID != value)
+                    _createdByUser = null;
+                _createdByUserID = value;
+            }
+        }
+        public clsUser? CreatedByUser
+        {
+            get
+            {
+                if (_createdByUserID == null)
+                   _createdByUser = null;
+                else if(_createdByUser == null && _createdByUserID != null && _createdByUserID > 0)
+                    _createdByUser = clsUser.Find(_createdByUserID.Value);
+                 
+                return _createdByUser; 
+            }
+        }
+        
+        public DateTime? UpdatedDate { set; get; }
+
+        private int? _countryID;
+        private clsCountry? _country;
+        public int? CountryID { get => _countryID ;
+        set
+            {
+                if(_countryID != value)
+                    _country = null;
+                _countryID = value;
+            }
+         }
+        public clsCountry? Country
+        {
+            get
+            {
+                if (_countryID == null)
+                   _country = null;
+                else if(_country == null && _countryID != null && _countryID > 0)
+                    _country = clsCountry.Find(_countryID.Value);
+                 
+                return _country; 
+            }
+            
+        } 
+
+        private int? _updatedByUserID;
+        private clsUser? _updatedByUser;
+        public int? UpdatedByUserID { get => _updatedByUserID ;
+        set
+            {
+                if(_updatedByUserID != value)
+                    _updatedByUser = null;
+                _updatedByUserID = value;
+            }
+         }
+        public clsUser? UpdatedByUser
+        {
+            get
+            {
+                if (_updatedByUserID == null)
+                   _updatedByUser = null;
+                else if(_updatedByUser == null && _updatedByUserID != null && _updatedByUserID > 0)
+                    _updatedByUser = clsUser.Find(_updatedByUserID.Value);
+                 
+                return _updatedByUser; 
+            }
+            
+        } 
+        
 
         // Optional: Linked Country Object
         // public clsCountry? CountryInfo;
@@ -64,7 +138,9 @@ namespace RMS_Business
             Email = null;
             NationalityCountryID = null;
             ImagePath = null;
+            CreatedDate = null;
             CreatedByUserID = null;
+            UpdatedDate = null;
             UpdatedByUserID = null;
 
             Mode = enMode.AddNew;
@@ -73,7 +149,7 @@ namespace RMS_Business
         private clsPerson(int PersonID, string? NationalNo, string FirstName, string? SecondName,
             string? ThirdName, string LastName, DateTime? DateOfBirth, byte? Gender,
             string? Address, string? Phone, string? Email, int? NationalityCountryID,
-            string? ImagePath, int? CreatedByUserID)
+            string? ImagePath, DateTime? CreatedDate, int? CreatedByUserID, DateTime? UpdatedDate, int? UpdatedByUserID)
         {
             this.PersonID = PersonID;
             this.NationalNo = NationalNo;
@@ -88,7 +164,10 @@ namespace RMS_Business
             this.Email = Email;
             this.NationalityCountryID = NationalityCountryID;
             this.ImagePath = ImagePath;
+            this.CreatedDate = CreatedDate;
             this.CreatedByUserID = CreatedByUserID;
+            this.UpdatedDate = UpdatedDate;
+            this.UpdatedByUserID = UpdatedByUserID;
 
             // if (NationalityCountryID.HasValue)
             //     this.CountryInfo = clsCountry.Find(NationalityCountryID.Value);
@@ -98,11 +177,12 @@ namespace RMS_Business
 
         private bool _AddNewPerson()
         {
+
             PersonID = clsPersonData.AddNewPerson(
                 NationalNo, FirstName, SecondName, ThirdName,
                 LastName, DateOfBirth, Gender, Address,
                 Phone, Email, NationalityCountryID, ImagePath,
-                CreatedByUserID);
+                CreatedDate, CreatedByUserID);
 
             return PersonID != -1;
         }
@@ -113,7 +193,7 @@ namespace RMS_Business
                 PersonID, NationalNo, FirstName, SecondName,
                 ThirdName, LastName, DateOfBirth, Gender,
                 Address, Phone, Email, NationalityCountryID,
-                ImagePath, UpdatedByUserID);
+                ImagePath, UpdatedDate, UpdatedByUserID);
         }
 
         public static clsPerson? Find(int PersonID)
@@ -131,18 +211,21 @@ namespace RMS_Business
             string? Email = null;
             int? NationalityCountryID = null;
             string? ImagePath = null;
+            DateTime? CreatedDate = null;
             int? CreatedByUserID = null;
+            DateTime? UpdatedDate = null;
+            int? UpdatedByUserID = null;
 
             bool IsFound = clsPersonData.GetPersonInfoByID(
                 PersonID, ref NationalNo, ref FirstName, ref SecondName,
                 ref ThirdName, ref LastName, ref DateOfBirth,
                 ref Gender, ref Address, ref Phone, ref Email,
-                ref NationalityCountryID, ref ImagePath, ref CreatedByUserID
+                ref NationalityCountryID, ref ImagePath, ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID
             );
 
             if (IsFound)
                 return new clsPerson(PersonID, NationalNo, FirstName, SecondName, ThirdName, LastName,
-                          DateOfBirth, Gender, Address, Phone, Email, NationalityCountryID, ImagePath, CreatedByUserID);
+                          DateOfBirth, Gender, Address, Phone, Email, NationalityCountryID, ImagePath, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID);
             else
                 return null;
         }

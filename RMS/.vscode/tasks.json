@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build RMS Solution",
+			"type": "shell",
+			"command": "dotnet build RMS.sln",
+			"group": "build"
+		}
+	]
+}

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using DVLD_DataAccess;
 using Microsoft.Data.SqlClient;
 
 namespace RMS_DataAccess
@@ -13,7 +12,7 @@ namespace RMS_DataAccess
         public static bool GetPersonInfoByID(int PersonID, ref string? NationalNo, ref string FirstName,
             ref string? SecondName, ref string? ThirdName, ref string LastName, ref DateTime? DateOfBirth,
             ref byte? Gender, ref string? Address, ref string? Phone, ref string? Email,
-            ref int? NationalityCountryID, ref string? ImagePath, ref int? CreatedByUserID)
+            ref int? NationalityCountryID, ref string? ImagePath, ref DateTime? CreatedDate, ref int? CreatedByUserID, ref DateTime? UpdatedDate, ref int? UpdatedByUserID)
         {
             bool isFound = false;
 
@@ -52,6 +51,9 @@ namespace RMS_DataAccess
                                 NationalityCountryID = reader["NationalityCountryID"] != DBNull.Value ? (int?)reader["NationalityCountryID"] : null;
                                 ImagePath = reader["ImagePath"] != DBNull.Value ? (string)reader["ImagePath"] : null;
                                 CreatedByUserID = reader["CreatedByUserID"] != DBNull.Value ? (int?)reader["CreatedByUserID"] : null;
+                                CreatedDate = reader["CreatedDate"] != DBNull.Value ? (DateTime?)reader["CreatedDate"] : null;
+                                UpdatedByUserID = reader["UpdatedByUserID"] != DBNull.Value ? (int?)reader["UpdatedByUserID"] : null;
+                                UpdatedDate = reader["UpdatedDate"] != DBNull.Value ? (DateTime?)reader["UpdatedDate"] : null;
                             }
                         }
                     }
@@ -71,7 +73,7 @@ namespace RMS_DataAccess
         public static int AddNewPerson(string? NationalNo, string FirstName, string? SecondName,
             string? ThirdName, string LastName, DateTime? DateOfBirth, byte? Gender,
             string? Address, string? Phone, string? Email, int? NationalityCountryID,
-            string? ImagePath, int? CreatedByUserID)
+            string? ImagePath, DateTime? CreatedDate, int? CreatedByUserID)
         {
             int newPersonID = -1;
 
@@ -97,7 +99,8 @@ namespace RMS_DataAccess
                     command.Parameters.AddWithValue("@NationalityCountryID", (object?)NationalityCountryID ?? DBNull.Value);
                     command.Parameters.AddWithValue("@ImagePath", (object?)ImagePath ?? DBNull.Value);
                     command.Parameters.AddWithValue("@CreatedByUserID", (object?)CreatedByUserID ?? DBNull.Value);
-
+                    command.Parameters.AddWithValue("@CreatedDate", (object?)CreatedDate ?? DBNull.Value);
+                    
                     // Output Parameter
                     SqlParameter outputIdParam = new SqlParameter("@NewPersonID", SqlDbType.Int)
                     {
@@ -131,7 +134,7 @@ namespace RMS_DataAccess
         public static bool UpdatePerson(int PersonID, string? NationalNo, string FirstName, string? SecondName,
             string? ThirdName, string LastName, DateTime? DateOfBirth, byte? Gender,
             string? Address, string? Phone, string? Email, int? NationalityCountryID,
-            string? ImagePath, int? UpdatedByUserID)
+            string? ImagePath, DateTime? UpdatedDate, int? UpdatedByUserID)
         {
             int result = 0;
 
@@ -157,6 +160,7 @@ namespace RMS_DataAccess
                     command.Parameters.AddWithValue("@NationalityCountryID", (object?)NationalityCountryID ?? DBNull.Value);
                     command.Parameters.AddWithValue("@ImagePath", (object?)ImagePath ?? DBNull.Value);
                     command.Parameters.AddWithValue("@UpdatedByUserID", (object?)UpdatedByUserID ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@UpdatedDate", (object?)UpdatedDate ?? DBNull.Value);
 
                     // Return Value Parameter
                     SqlParameter returnParameter = new SqlParameter("@ReturnVal", SqlDbType.Int)

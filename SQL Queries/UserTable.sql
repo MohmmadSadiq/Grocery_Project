@@ -12,8 +12,7 @@
 -- Description: Creates a new user record.
 -- Returns: The new UserID via the OUTPUT parameter.
 -- =============================================
-CREATE PROCEDURE spAddNewUser
-    @UserID          INT,             -- Pass 0 or NULL if Identity Insert is ON
+ALTER PROCEDURE spAddNewUser
     @PersonID        INT,
     @UserName        NVARCHAR(50),
     @PasswordHash    NVARCHAR(128),
@@ -27,7 +26,6 @@ BEGIN
 
     INSERT INTO Users
     (
-        UserID,          -- Note: If this is an IDENTITY column, this line requires IDENTITY_INSERT ON
         PersonID,
         UserName,
         PasswordHash,
@@ -38,7 +36,6 @@ BEGIN
     )
     VALUES
     (
-        @UserID,
         @PersonID,
         @UserName,
         @PasswordHash,
@@ -58,7 +55,7 @@ GO
 -- Description: Retrieves a single user by their ID.
 -- Note: Only returns users who are NOT deleted.
 -- =============================================
-CREATE PROCEDURE spGetUserInfoByID
+ALTER PROCEDURE spGetUserInfoByID
     @UserID INT
 AS 
 BEGIN
@@ -85,7 +82,7 @@ GO
 -- Procedure: spGetAllUsers
 -- Description: Retrieves a list of ALL active (non-deleted) users.
 -- =============================================
-CREATE PROCEDURE spGetAllUsers
+ALTER PROCEDURE spGetAllUsers
 AS 
 BEGIN
     SET NOCOUNT ON;
@@ -111,7 +108,7 @@ GO
 -- Description: Updates user details and tracks who made the change.
 -- Returns: 1 if successful, 0 if no row was found.
 -- =============================================
-CREATE PROCEDURE spUpdateUser
+ALTER PROCEDURE spUpdateUser
     @UserID          INT,
     @PersonID        INT,
     @UserName        NVARCHAR(50),
@@ -148,7 +145,7 @@ GO
 -- Note: This issues a DELETE command, which triggers 'UserSoftDelete'.
 --       It explicitly updates audit info (UpdatedBy) before finishing.
 -- =============================================
-CREATE PROCEDURE spDeleteUser
+ALTER PROCEDURE spDeleteUser
     @UserID INT,
     @UpdatedByUserID INT
 AS 
@@ -200,7 +197,7 @@ GO
 -- Description: Intercepts DELETE commands on the [Users] table.
 -- Action: Instead of deleting, it updates the row to set IsDeleted = 1.
 -- =============================================
-CREATE TRIGGER UserSoftDelete 
+ALTER TRIGGER UserSoftDelete 
    ON Users
    INSTEAD OF DELETE
 AS 

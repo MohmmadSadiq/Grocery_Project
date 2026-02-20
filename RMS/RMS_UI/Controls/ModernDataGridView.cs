@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Reflection;
 using System.Windows.Forms;
 using RMS_UI.Utilities;
 
@@ -17,9 +18,6 @@ namespace RMS_UI.Controls
         private int _currentPage = 1;
         private int _totalRecords = 0;
         private int _pageSize = 25;
-        private int _hoveredRowIndex = -1;
-        private Color _hoverColor;
-        private Color _normalColor;
         #endregion
 
         #region Properties
@@ -92,6 +90,22 @@ namespace RMS_UI.Controls
             get => _paginationPanel?.Visible ?? true;
             set { if (_paginationPanel != null) _paginationPanel.Visible = value; }
         }
+
+        /// <summary>
+        /// Gets or sets whether to show context menu for bulk actions.
+        /// When true, right-clicking displays the context menu if rows are checked.
+        /// </summary>
+        [Category("Behavior")]
+        [DefaultValue(true)]
+        [Description("Set to true to enable context menu for bulk actions.")]
+        public bool ShowContextMenu { get; set; } = true;
+
+        /// <summary>
+        /// Gets the context menu for bulk actions.
+        /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [Browsable(false)]
+        public ContextMenuStrip ContextMenu => _contextMenu;
         #endregion
 
         #region Events
@@ -99,16 +113,53 @@ namespace RMS_UI.Controls
         public event EventHandler<DataGridViewCellEventArgs>? CellDoubleClicked;
         public event EventHandler? SelectionChanged;
         public event EventHandler<int>? PageSizeChanged;
+
+        // Context Menu Events
+        public event EventHandler? ActivateSelected;
+        public event EventHandler? DeactivateSelected;
+        public event EventHandler? ExportToExcelSelected;
+        public event EventHandler? DeleteSelected;
+        public event EventHandler<ContextMenuItemClickedEventArgs>? ContextMenuItemClicked;
         #endregion
 
         public ModernDataGridView()
         {
             InitializeComponent();
+            CreateContextMenu();
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
             
+            // Enable DoubleBuffered to prevent flickering during painting
+            EnableDoubleBuffering(_dataGridView);
+            
             // Handle DataError to prevent error dialog for image columns
             _dataGridView.DataError += DataGridView_DataError;
+            
+            // Commit checkbox changes immediately when clicked
+            _dataGridView.CurrentCellDirtyStateChanged += DataGridView_CurrentCellDirtyStateChanged;
+        }
+
+        /// <summary>
+        /// Enables DoubleBuffered property on DataGridView to prevent flickering.
+        /// </summary>
+        private static void EnableDoubleBuffering(DataGridView dgv)
+        {
+            typeof(DataGridView).InvokeMember(
+                "DoubleBuffered",
+                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+                null,
+                dgv,
+                new object[] { true });
+        }
+
+        private void DataGridView_CurrentCellDirtyStateChanged(object? sender, EventArgs e)
+        {
+            // When checkbox is clicked, commit the change immediately
+            if (_dataGridView.IsCurrentCellDirty && 
+                _dataGridView.CurrentCell?.OwningColumn?.Name == "SelectCheckbox")
+            {
+                _dataGridView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
         }
 
         private void DataGridView_DataError(object? sender, DataGridViewDataErrorEventArgs e)
@@ -169,7 +220,12 @@ namespace RMS_UI.Controls
         #region Cell Painting
         private void DataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            // Paint header cells with vertical separators
+            if (e.RowIndex == -1)
+            {
+                PaintHeaderCell(e);
+                return;
+            }
 
             // Paint status tag for "IsActive" column
             var column = _dataGridView.Columns[e.ColumnIndex];
@@ -178,11 +234,83 @@ namespace RMS_UI.Controls
                 e.Handled = true;
                 PaintStatusTag(e);
             }
+            else
+            {
+                // For all other cells, paint background without selection border
+                PaintCellBackground(e);
+            }
+        }
+
+        private void PaintHeaderCell(DataGridViewCellPaintingEventArgs e)
+        {
+            // Paint background
+            using (var bgBrush = new SolidBrush(e.CellStyle!.BackColor))
+            {
+                e.Graphics!.FillRectangle(bgBrush, e.CellBounds);
+            }
+
+            // Paint text content
+            e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground);
+
+            // Draw vertical separator on the right side of each header cell
+            using (var pen = new Pen(Color.FromArgb(200, 200, 200), 1))
+            {
+                e.Graphics.DrawLine(pen, 
+                    e.CellBounds.Right - 1, 
+                    e.CellBounds.Top + 10, 
+                    e.CellBounds.Right - 1, 
+                    e.CellBounds.Bottom - 10);
+            }
+
+            e.Handled = true;
+        }
+
+        private void PaintCellBackground(DataGridViewCellPaintingEventArgs e)
+        {
+            // Use theme colors directly to ensure consistency
+            Color bgColor = e.State.HasFlag(DataGridViewElementStates.Selected)
+                ? ThemeManager.Colors.PrimaryLight
+                : ThemeManager.Colors.ContentBackground;
+
+            // Expand bounds by 1 pixel to cover any grid lines
+            var expandedBounds = new Rectangle(
+                e.CellBounds.X - 1,
+                e.CellBounds.Y - 1,
+                e.CellBounds.Width + 2,
+                e.CellBounds.Height + 2
+            );
+
+            // Paint solid background without any borders
+            using (var bgBrush = new SolidBrush(bgColor))
+            {
+                e.Graphics!.FillRectangle(bgBrush, expandedBounds);
+            }
+
+            // Paint rest of cell (content only, no focus rectangle)
+            e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground);
+            e.Handled = true;
         }
 
         private void PaintStatusTag(DataGridViewCellPaintingEventArgs e)
         {
-            e.PaintBackground(e.CellBounds, true);
+            // Use theme colors directly to ensure consistency
+            Color cellBgColor = e.State.HasFlag(DataGridViewElementStates.Selected)
+                ? ThemeManager.Colors.PrimaryLight
+                : ThemeManager.Colors.ContentBackground;
+
+            // Expand bounds by 1 pixel to cover any grid lines
+            var expandedBounds = new Rectangle(
+                e.CellBounds.X - 1,
+                e.CellBounds.Y - 1,
+                e.CellBounds.Width + 2,
+                e.CellBounds.Height + 2
+            );
+
+            // Paint background without selection border to avoid lines between rows
+            using (var bgBrush = new SolidBrush(cellBgColor))
+            {
+                e.Graphics!.FillRectangle(bgBrush, expandedBounds);
+            }
 
             if (e.Value == null) return;
 
@@ -193,7 +321,7 @@ namespace RMS_UI.Controls
                 isActive = parsed;
 
             string text = isActive ? "نشط" : "غير نشط";
-            Color bgColor = isActive ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68);
+            Color tagBgColor = isActive ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68);
             Color textColor = Color.White;
 
             using (var font = new Font("Segoe UI", 8F, FontStyle.Bold))
@@ -210,7 +338,7 @@ namespace RMS_UI.Controls
                 );
 
                 using (var path = CreateRoundedRectangle(tagRect, 4))
-                using (var brush = new SolidBrush(bgColor))
+                using (var brush = new SolidBrush(tagBgColor))
                 {
                     e.Graphics!.SmoothingMode = SmoothingMode.AntiAlias;
                     e.Graphics.FillPath(brush, path);
@@ -242,31 +370,273 @@ namespace RMS_UI.Controls
         }
         #endregion
 
-        #region Hover Effect
-        private void DataGridView_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
+        #region Context Menu
+        private ToolStripMenuItem? _selectMenuItem;
+
+        /// <summary>
+        /// Creates and initializes the context menu for bulk actions.
+        /// </summary>
+        private void CreateContextMenu()
         {
-            if (e.RowIndex >= 0 && e.RowIndex != _hoveredRowIndex)
+            _contextMenu = new ContextMenuStrip();
+            _contextMenu.Font = new Font("Segoe UI", 9.5F);
+
+            // Opening event - check if rows are selected (only if context menu is enabled)
+            _contextMenu.Opening += ContextMenu_Opening;
+
+            _dataGridView.ContextMenuStrip = _contextMenu;
+        }
+
+        private void ContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Cancel if context menu is disabled
+            if (!ShowContextMenu)
             {
-                // Reset previous hovered row
-                if (_hoveredRowIndex >= 0 && _hoveredRowIndex < _dataGridView.Rows.Count)
+                e.Cancel = true;
+                return;
+            }
+
+            // Cancel if no menu items
+            if (_contextMenu.Items.Count == 0)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            // Update "Select" menu item text based on drag-selected rows
+            UpdateSelectMenuItemText();
+
+            // If checkbox column exists, check if we have checked rows OR selected rows (for Select All)
+            if (_dataGridView.Columns["SelectCheckbox"] != null)
+            {
+                var checkedRows = GetCheckedRows();
+                
+                // Allow menu to show if there are checked rows OR if there are rows to select
+                if (checkedRows.Count == 0 && _dataGridView.Rows.Count == 0)
                 {
-                    _dataGridView.Rows[_hoveredRowIndex].DefaultCellStyle.BackColor = _normalColor;
+                    e.Cancel = true;
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the "Select" menu item text based on drag-selected rows.
+        /// </summary>
+        private void UpdateSelectMenuItemText()
+        {
+            if (_selectMenuItem == null) return;
+
+            int selectedCount = _dataGridView.SelectedRows.Count;
+            int checkedCount = GetCheckedRows().Count;
+
+            if (selectedCount > 1)
+            {
+                _selectMenuItem.Text = $"☑ Select {selectedCount} items";
+            }
+            else if (checkedCount > 0)
+            {
+                _selectMenuItem.Text = "☐ Deselect All";
+            }
+            else
+            {
+                _selectMenuItem.Text = "☑ Select All";
+            }
+        }
+
+        /// <summary>
+        /// Handles the Select All / Select Items action.
+        /// If rows are drag-selected, checks those rows.
+        /// Otherwise, checks all rows.
+        /// </summary>
+        private void SelectMenuItem_Click(object? sender, EventArgs e)
+        {
+            if (_dataGridView.Columns["SelectCheckbox"] == null) return;
+
+            int selectedCount = _dataGridView.SelectedRows.Count;
+            int checkedCount = GetCheckedRows().Count;
+
+            // If there are checked rows, deselect all
+            if (checkedCount > 0 && selectedCount <= 1)
+            {
+                SelectAllCheckboxes(false);
+            }
+            // If multiple rows are drag-selected, check those
+            else if (selectedCount > 1)
+            {
+                foreach (DataGridViewRow row in _dataGridView.SelectedRows)
+                {
+                    if (row.Cells["SelectCheckbox"] != null)
+                    {
+                        row.Cells["SelectCheckbox"].Value = true;
+                    }
+                }
+            }
+            // Otherwise, select all
+            else
+            {
+                SelectAllCheckboxes(true);
+            }
+
+            // Force UI refresh to show checkbox changes immediately
+            _dataGridView.RefreshEdit();
+            _dataGridView.Invalidate();
+        }
+
+        /// <summary>
+        /// Adds a "Select All" menu item that selects drag-selected rows or all rows.
+        /// </summary>
+        public void AddSelectAllMenuItem()
+        {
+            _selectMenuItem = new ToolStripMenuItem("☑ Select All");
+            _selectMenuItem.Name = "SelectAll";
+            _selectMenuItem.Click += SelectMenuItem_Click;
+            
+            // Insert at the beginning
+            if (_contextMenu.Items.Count > 0)
+            {
+                _contextMenu.Items.Insert(0, _selectMenuItem);
+                _contextMenu.Items.Insert(1, new ToolStripSeparator());
+            }
+            else
+            {
+                _contextMenu.Items.Add(_selectMenuItem);
+            }
+        }
+
+        /// <summary>
+        /// Clears all context menu items to add custom ones.
+        /// </summary>
+        public void ClearContextMenu()
+        {
+            _contextMenu.Items.Clear();
+            _selectMenuItem = null;
+        }
+
+        /// <summary>
+        /// Adds a custom context menu item.
+        /// </summary>
+        /// <param name="name">Unique name/identifier for the menu item</param>
+        /// <param name="text">Display text for the menu item</param>
+        /// <param name="onClick">Optional click event handler</param>
+        /// <param name="isDelete">If true, shows in red color for delete actions</param>
+        public void AddContextMenuItem(string name, string text, EventHandler? onClick = null, bool isDelete = false)
+        {
+            var item = new ToolStripMenuItem(text);
+            item.Name = name;
+            
+            if (isDelete)
+            {
+                item.ForeColor = Color.FromArgb(239, 68, 68);
+                item.Tag = "delete"; // For theme detection
+            }
+
+            // Wire up click event
+            item.Click += (s, e) =>
+            {
+                // Call the provided handler if any
+                onClick?.Invoke(s, e);
+
+                // Also raise the generic event with context info
+                var args = new ContextMenuItemClickedEventArgs(name, GetCheckedRowIndices());
+                ContextMenuItemClicked?.Invoke(this, args);
+            };
+
+            _contextMenu.Items.Add(item);
+        }
+
+        /// <summary>
+        /// Adds a separator to the context menu.
+        /// </summary>
+        public void AddContextMenuSeparator()
+        {
+            _contextMenu.Items.Add(new ToolStripSeparator());
+        }
+
+        /// <summary>
+        /// Adds standard status menu items (Change Status submenu with Activate/Deactivate, and Delete).
+        /// This is a convenience method for common bulk operations.
+        /// </summary>
+        /// <param name="hasActivate">Include Activate option</param>
+        /// <param name="hasDeactivate">Include Deactivate option</param>
+        /// <param name="hasDelete">Include Delete option (shown in red)</param>
+        /// <param name="hasExport">Include Export to Excel option</param>
+        public void AddStandardStatusMenuItems(bool hasActivate = true, bool hasDeactivate = true,
+                                               bool hasDelete = true, bool hasExport = false)
+        {
+            if (hasActivate || hasDeactivate)
+            {
+                var changeStatusItem = new ToolStripMenuItem("Change Status");
+                changeStatusItem.Name = "ChangeStatus";
+
+                if (hasActivate)
+                {
+                    var activateItem = new ToolStripMenuItem("Activate", null,
+                        (s, e) => ActivateSelected?.Invoke(this, EventArgs.Empty));
+                    activateItem.Name = "Activate";
+                    changeStatusItem.DropDownItems.Add(activateItem);
                 }
 
-                _hoveredRowIndex = e.RowIndex;
-                _dataGridView.Rows[_hoveredRowIndex].DefaultCellStyle.BackColor = _hoverColor;
+                if (hasDeactivate)
+                {
+                    var deactivateItem = new ToolStripMenuItem("Deactivate", null,
+                        (s, e) => DeactivateSelected?.Invoke(this, EventArgs.Empty));
+                    deactivateItem.Name = "Deactivate";
+                    changeStatusItem.DropDownItems.Add(deactivateItem);
+                }
+
+                _contextMenu.Items.Add(changeStatusItem);
+            }
+
+            if (hasExport)
+            {
+                if (_contextMenu.Items.Count > 0)
+                    _contextMenu.Items.Add(new ToolStripSeparator());
+
+                var exportItem = new ToolStripMenuItem("Export to Excel", null,
+                    (s, e) => ExportToExcelSelected?.Invoke(this, EventArgs.Empty));
+                exportItem.Name = "ExportToExcel";
+                _contextMenu.Items.Add(exportItem);
+            }
+
+            if (hasDelete)
+            {
+                if (_contextMenu.Items.Count > 0)
+                    _contextMenu.Items.Add(new ToolStripSeparator());
+
+                var deleteItem = new ToolStripMenuItem("Delete Selected", null,
+                    (s, e) => DeleteSelected?.Invoke(this, EventArgs.Empty));
+                deleteItem.Name = "DeleteSelected";
+                deleteItem.ForeColor = Color.FromArgb(239, 68, 68);
+                deleteItem.Tag = "delete"; // For theme detection
+                _contextMenu.Items.Add(deleteItem);
             }
         }
 
-        private void DataGridView_CellMouseLeave(object sender, DataGridViewCellEventArgs e)
+        /// <summary>
+        /// Gets the indices of all checked rows.
+        /// </summary>
+        /// <returns>List of row indices that are checked</returns>
+        public List<int> GetCheckedRowIndices()
         {
-            if (_hoveredRowIndex >= 0 && _hoveredRowIndex < _dataGridView.Rows.Count)
+            var indices = new List<int>();
+            
+            if (_dataGridView.Columns["SelectCheckbox"] == null)
+                return indices;
+
+            foreach (DataGridViewRow row in _dataGridView.Rows)
             {
-                _dataGridView.Rows[_hoveredRowIndex].DefaultCellStyle.BackColor = _normalColor;
+                if (row.Cells["SelectCheckbox"].Value is true)
+                {
+                    indices.Add(row.Index);
+                }
             }
-            _hoveredRowIndex = -1;
+
+            return indices;
         }
         #endregion
+
+
 
         #region Public Methods
         /// <summary>
@@ -300,7 +670,13 @@ namespace RMS_UI.Controls
         public void AddImageColumn(string columnName = "ProductImage", string headerText = "", 
             int width = 60, int insertIndex = -1)
         {
-            if (_dataGridView.Columns[columnName] != null) return;
+            var column = _dataGridView.Columns[columnName];
+            if (column != null) 
+            {
+                column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                column.Width = width;
+                return;
+            }        
 
             var imageColumn = new DataGridViewImageColumn
             {
@@ -370,7 +746,12 @@ namespace RMS_UI.Controls
 
             foreach (DataGridViewRow row in _dataGridView.Rows)
             {
-                if (row.Cells["SelectCheckbox"]?.Value is true)
+                var cell = row.Cells["SelectCheckbox"];
+                var cellValue = cell?.Value;
+                bool isChecked = cellValue is true || 
+                                 (cellValue is int intVal && intVal == 1) ||
+                                 (cellValue != null && cellValue.ToString() == "True");
+                if (isChecked)
                 {
                     checkedRows.Add(row);
                 }
@@ -391,6 +772,10 @@ namespace RMS_UI.Controls
                     row.Cells["SelectCheckbox"].Value = select;
                 }
             }
+
+            // Force UI refresh to show checkbox changes immediately
+            _dataGridView.RefreshEdit();
+            _dataGridView.Invalidate();
         }
 
         /// <summary>
@@ -446,6 +831,12 @@ namespace RMS_UI.Controls
         public void SetDataSource(object? dataSource, int? totalRecords = null)
         {
             _dataGridView.DataSource = dataSource;
+
+            // Make all columns ReadOnly except checkbox column
+            foreach (DataGridViewColumn col in _dataGridView.Columns)
+            {
+                col.ReadOnly = col.Name != "SelectCheckbox";
+            }
 
             if (totalRecords.HasValue)
             {
@@ -534,15 +925,11 @@ namespace RMS_UI.Controls
             var colors = ThemeManager.Colors;
 
             this.BackColor = colors.ContentBackground;
-            _normalColor = colors.ContentBackground;
-            _hoverColor = ThemeManager.CurrentTheme == ThemeMode.Light
-                ? Color.FromArgb(248, 250, 252)
-                : Color.FromArgb(45, 55, 72);
 
             if (_dataGridView != null)
             {
                 _dataGridView.BackgroundColor = colors.ContentBackground;
-                _dataGridView.GridColor = colors.BorderColor;
+                _dataGridView.GridColor = colors.ContentBackground; // Same as background to hide any grid lines
 
                 _dataGridView.ColumnHeadersDefaultCellStyle.BackColor = ThemeManager.CurrentTheme == ThemeMode.Light
                     ? Color.FromArgb(248, 250, 252)
@@ -559,6 +946,8 @@ namespace RMS_UI.Controls
                 // Update alternating rows style
                 _dataGridView.AlternatingRowsDefaultCellStyle.BackColor = colors.ContentBackground;
                 _dataGridView.AlternatingRowsDefaultCellStyle.ForeColor = colors.PrimaryText;
+                _dataGridView.AlternatingRowsDefaultCellStyle.SelectionBackColor = colors.PrimaryLight;
+                _dataGridView.AlternatingRowsDefaultCellStyle.SelectionForeColor = colors.Primary;
 
                 // Update existing rows to apply new theme immediately
                 foreach (DataGridViewRow row in _dataGridView.Rows)
@@ -607,7 +996,40 @@ namespace RMS_UI.Controls
                 }
             }
 
+            // Context Menu theming
+            if (_contextMenu != null)
+            {
+                _contextMenu.BackColor = colors.ContentBackground;
+                _contextMenu.ForeColor = colors.PrimaryText;
+
+                ApplyThemeToMenuItems(_contextMenu.Items, colors);
+            }
+
             Invalidate(true);
+        }
+
+        /// <summary>
+        /// Recursively applies theme to menu items (including submenus).
+        /// </summary>
+        private void ApplyThemeToMenuItems(ToolStripItemCollection items, ColorPalette colors)
+        {
+            foreach (ToolStripItem item in items)
+            {
+                if (item is ToolStripMenuItem menuItem)
+                {
+                    // Use tag-based detection instead of text matching
+                    if (menuItem.Tag?.ToString() == "delete")
+                        menuItem.ForeColor = Color.FromArgb(239, 68, 68);
+                    else
+                        menuItem.ForeColor = colors.PrimaryText;
+
+                    // Recursively apply to dropdown items
+                    if (menuItem.HasDropDownItems)
+                    {
+                        ApplyThemeToMenuItems(menuItem.DropDownItems, colors);
+                    }
+                }
+            }
         }
         #endregion
     }
@@ -622,6 +1044,28 @@ namespace RMS_UI.Controls
         {
             PageNumber = pageNumber;
             PageSize = pageSize;
+        }
+    }
+
+    /// <summary>
+    /// EventArgs for context menu item clicks, providing the menu item name and checked row indices.
+    /// </summary>
+    public class ContextMenuItemClickedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// The name/identifier of the clicked menu item.
+        /// </summary>
+        public string MenuItemName { get; }
+
+        /// <summary>
+        /// List of row indices that are currently checked.
+        /// </summary>
+        public List<int> CheckedRowIndices { get; }
+
+        public ContextMenuItemClickedEventArgs(string menuItemName, List<int> checkedRowIndices)
+        {
+            MenuItemName = menuItemName;
+            CheckedRowIndices = checkedRowIndices;
         }
     }
     #endregion

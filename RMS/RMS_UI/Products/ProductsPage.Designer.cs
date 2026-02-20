@@ -1,6 +1,6 @@
 namespace RMS_UI.Controls
 {
-    partial class ProductsControl
+    partial class ProductsPage
     {
         /// <summary> 
         /// Required designer variable.
@@ -145,7 +145,7 @@ namespace RMS_UI.Controls
             _notification.TabIndex = 0;
             _notification.Visible = false;
             // 
-            // ProductsControl
+            // ProductsPage
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -153,9 +153,9 @@ namespace RMS_UI.Controls
             Controls.Add(_dataGrid);
             Controls.Add(_headerPanel);
             Controls.Add(_notification);
-            Name = "ProductsControl";
+            Name = "ProductsPage";
             Size = new Size(1527, 710);
-            Load += ProductsControl_Load;
+            Load += ProductsPage_Load;
             _headerPanel.ResumeLayout(false);
             _headerPanel.PerformLayout();
             ResumeLayout(false);

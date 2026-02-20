@@ -28,30 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
-            reusableDataGrid1 = new Controls.ReusableDataGrid();
             SuspendLayout();
-            // 
-            // reusableDataGrid1
-            // 
-            reusableDataGrid1.BackColor = Color.FromArgb(255, 255, 255);
-            reusableDataGrid1.Location = new Point(12, 12);
-            reusableDataGrid1.Name = "reusableDataGrid1";
-            reusableDataGrid1.Size = new Size(900, 600);
-            reusableDataGrid1.TabIndex = 0;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(938, 629);
-            Controls.Add(reusableDataGrid1);
             Name = "Form1";
             Text = "Form1";
             ResumeLayout(false);
         }
 
         #endregion
-
-        private Controls.ReusableDataGrid reusableDataGrid1;
     }
 }

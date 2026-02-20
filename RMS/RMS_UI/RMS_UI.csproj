@@ -18,25 +18,25 @@
     <Compile Update="Controls\ReusableDataGrid.Designer.cs">
       <DependentUpon>ReusableDataGrid.cs</DependentUpon>
     </Compile>
-    <Compile Update="Controls\ProductsControl.Designer.cs">
-      <DependentUpon>ProductsControl.cs</DependentUpon>
+    <Compile Update="Products\ProductsPage.Designer.cs">
+      <DependentUpon>ProductsPage.cs</DependentUpon>
     </Compile>
     <Compile Update="Controls\ModernTitleBar.Designer.cs">
       <DependentUpon>ModernTitleBar.cs</DependentUpon>
     </Compile>
-    <Compile Update="Forms\ProductDialog.Designer.cs">
+    <Compile Update="Products\Dialogs\ProductDialog.Designer.cs">
       <DependentUpon>ProductDialog.cs</DependentUpon>
     </Compile>
-    <Compile Update="Forms\ProductSettingsDialog.Designer.cs">
+    <Compile Update="Products\Dialogs\ProductSettingsDialog.Designer.cs">
       <DependentUpon>ProductSettingsDialog.cs</DependentUpon>
     </Compile>
-    <Compile Update="Forms\ProductUnitDialog.Designer.cs">
+    <Compile Update="Products\ProductUnite\ProductUnitDialog.Designer.cs">
       <DependentUpon>ProductUnitDialog.cs</DependentUpon>
     </Compile>
-    <Compile Update="Forms\ProductUnitsDialog.Designer.cs">
+    <Compile Update="Products\ProductUnite\ProductUnitsDialog.Designer.cs">
       <DependentUpon>ProductUnitsDialog.cs</DependentUpon>
     </Compile>
-    <Compile Update="Forms\UnitDialog.Designer.cs">
+    <Compile Update="Products\ProductUnite\UnitDialog.Designer.cs">
       <DependentUpon>UnitDialog.cs</DependentUpon>
     </Compile>
   </ItemGroup>
