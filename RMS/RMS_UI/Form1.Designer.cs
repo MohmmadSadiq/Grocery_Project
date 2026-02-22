@@ -28,31 +28,42 @@
         /// </summary>
         private void InitializeComponent()
         {
-            ctrlAddEditCompany1 = new Companies.ctrlAddEditCompany();
+            components = new System.ComponentModel.Container();
+            autoComplete1 = new Syncfusion.Windows.Forms.Tools.AutoComplete(components);
+            ctrlPersonCardWithConfig1 = new Peoples.ctrlPersonCardWithConfig();
+            ((System.ComponentModel.ISupportInitialize)autoComplete1).BeginInit();
             SuspendLayout();
             // 
-            // ctrlAddEditCompany1
+            // autoComplete1
             // 
-            ctrlAddEditCompany1.BackColor = Color.FromArgb(245, 247, 250);
-            ctrlAddEditCompany1.Location = new Point(179, 12);
-            ctrlAddEditCompany1.Name = "ctrlAddEditCompany1";
-            ctrlAddEditCompany1.Size = new Size(548, 800);
-            ctrlAddEditCompany1.TabIndex = 0;
-            ctrlAddEditCompany1.Load += ctrlAddEditCompany1_Load;
+            autoComplete1.HeaderFont = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.World);
+            autoComplete1.ItemFont = new Font("Segoe UI", 8.25F);
+            autoComplete1.MetroColor = Color.FromArgb(17, 158, 218);
+            autoComplete1.ParentForm = this;
+            // 
+            // ctrlPersonCardWithConfig1
+            // 
+            ctrlPersonCardWithConfig1.BackColor = Color.Transparent;
+            ctrlPersonCardWithConfig1.Location = new Point(197, 12);
+            ctrlPersonCardWithConfig1.Name = "ctrlPersonCardWithConfig1";
+            ctrlPersonCardWithConfig1.Size = new Size(467, 713);
+            ctrlPersonCardWithConfig1.TabIndex = 0;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(938, 822);
-            Controls.Add(ctrlAddEditCompany1);
+            Controls.Add(ctrlPersonCardWithConfig1);
             Name = "Form1";
             Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)autoComplete1).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
-        private Companies.ctrlAddEditCompany ctrlAddEditCompany1;
+        private Syncfusion.Windows.Forms.Tools.AutoComplete autoComplete1;
+        private Peoples.ctrlPersonCardWithConfig ctrlPersonCardWithConfig1;
     }
 }

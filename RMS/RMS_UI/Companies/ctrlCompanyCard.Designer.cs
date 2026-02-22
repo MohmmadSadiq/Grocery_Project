@@ -68,7 +68,7 @@
             _pnlContainer.Location = new Point(0, 0);
             _pnlContainer.Name = "_pnlContainer";
             _pnlContainer.Padding = new Padding(18);
-            _pnlContainer.Size = new Size(400, 438);
+            _pnlContainer.Size = new Size(400, 345);
             _pnlContainer.TabIndex = 0;
             // 
             // _pnlAuditInfo
@@ -82,11 +82,11 @@
             _pnlAuditInfo.Controls.Add(_lblUpdatedByLabel);
             _pnlAuditInfo.Controls.Add(_lblUpdatedBy);
             _pnlAuditInfo.Dock = DockStyle.Bottom;
-            _pnlAuditInfo.Location = new Point(18, 221);
+            _pnlAuditInfo.Location = new Point(18, 214);
             _pnlAuditInfo.Margin = new Padding(4, 3, 4, 3);
             _pnlAuditInfo.Name = "_pnlAuditInfo";
             _pnlAuditInfo.Padding = new Padding(0, 12, 0, 0);
-            _pnlAuditInfo.Size = new Size(364, 199);
+            _pnlAuditInfo.Size = new Size(364, 113);
             _pnlAuditInfo.TabIndex = 9;
             // 
             // _lblCreatedDateLabel
@@ -182,7 +182,7 @@
             _btnViewContactPerson.AutoSize = true;
             _btnViewContactPerson.Enabled = false;
             _btnViewContactPerson.Font = new Font("Segoe UI", 8.5F);
-            _btnViewContactPerson.Location = new Point(299, 183);
+            _btnViewContactPerson.Location = new Point(112, 185);
             _btnViewContactPerson.Name = "_btnViewContactPerson";
             _btnViewContactPerson.Size = new Size(80, 25);
             _btnViewContactPerson.TabIndex = 8;
@@ -282,7 +282,7 @@
             Controls.Add(_pnlContainer);
             Margin = new Padding(10);
             Name = "ctrlCompanyCard";
-            Size = new Size(400, 438);
+            Size = new Size(400, 345);
             _pnlContainer.ResumeLayout(false);
             _pnlContainer.PerformLayout();
             _pnlAuditInfo.ResumeLayout(false);

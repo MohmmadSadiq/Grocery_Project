@@ -8,12 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Navigation;
 
 namespace RMS_UI.Controls
 {
     public partial class ctrlCompanyCard : UserControl
     {
         private RMS_Business.clsCompany? _company = null;
+
+        [System.ComponentModel.DesignerSerializationVisibility(
+    System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+        public clsCompany? Company { get => _company; }
+
+
         private const int BorderRadius = 12;
         private const int ShadowSize = 8;
 
@@ -115,6 +122,33 @@ namespace RMS_UI.Controls
             {
                 _lblUpdatedBy.Text = "N/A";
             }
+        }
+
+        public void Clear()
+        {
+            _company = null;
+            
+            // Clear Company Information
+            _lblCompanyName.Text = "Company Name";
+            _lblCompanyID.Text = "Company ID: N/A";
+            _lblCommercialNumber.Text = "Commercial No: N/A";
+            _lblPhone.Text = "No phone provided";
+            _lblEmail.Text = "No email provided";
+            _lblAddress.Text = "No address provided";
+            _lblCountryID.Text = "Country: N/A";
+            
+            // Clear Contact Person
+            _lblContactPersonID.Text = "Contact Person:";
+            _btnViewContactPerson.Text = "Not assigned";
+            _btnViewContactPerson.Enabled = false;
+            
+            // Clear Audit Information
+            _lblCreatedDate.Text = "N/A";
+            _lblCreatedBy.Text = "N/A";
+            _lblUpdatedDate.Text = "N/A";
+            _lblUpdatedBy.Text = "N/A";
+            
+            Invalidate();
         }
 
         private void ApplyTheme()

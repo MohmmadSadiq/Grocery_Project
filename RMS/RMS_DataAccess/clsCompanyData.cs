@@ -163,5 +163,165 @@ namespace RMS_DataAccess
             }
             return dt;
         }
+
+        public static bool GetCompanyByCompanyName(string CompanyName, ref int CompanyID, ref int? ContactPersonID, ref string? Phone, ref string? Email, ref string? Address, ref int? CountryID, ref string? CommercialNumber, ref DateTime CreatedDate, ref int? CreatedByUserID, ref DateTime UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spCompany_GetByCompanyName", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@CompanyName", SqlDbType.NVarChar).Value = (object?)CompanyName ?? DBNull.Value;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                CompanyID        = (int)reader["CompanyID"];
+                                ContactPersonID  = reader["ContactPersonID"]  != DBNull.Value ? (int?)reader["ContactPersonID"]  : null;
+                                Phone            = reader["Phone"]            != DBNull.Value ? (string?)reader["Phone"]            : null;
+                                Email            = reader["Email"]            != DBNull.Value ? (string?)reader["Email"]            : null;
+                                Address          = reader["Address"]          != DBNull.Value ? (string?)reader["Address"]          : null;
+                                CountryID        = reader["CountryID"]        != DBNull.Value ? (int?)reader["CountryID"]           : null;
+                                CommercialNumber = reader["CommercialNumber"] != DBNull.Value ? (string?)reader["CommercialNumber"] : null;
+                                CreatedDate      = (DateTime)reader["CreatedDate"];
+                                CreatedByUserID  = reader["CreatedByUserID"]  != DBNull.Value ? (int?)reader["CreatedByUserID"]    : null;
+                                UpdatedDate      = reader["UpdatedDate"]      != DBNull.Value ? (DateTime)reader["UpdatedDate"]    : DateTime.MinValue;
+                                UpdatedByUserID  = reader["UpdatedByUserID"]  != DBNull.Value ? (int?)reader["UpdatedByUserID"]    : null;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        isFound = false;
+                    }
+                }
+            }
+            return isFound;
+        }
+
+        public static bool GetCompanyByCommercialNumber(string CommercialNumber, ref int CompanyID, ref string CompanyName, ref int? ContactPersonID, ref string? Phone, ref string? Email, ref string? Address, ref int? CountryID, ref DateTime CreatedDate, ref int? CreatedByUserID, ref DateTime UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spCompany_GetByCommercialNumber", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@CommercialNumber", SqlDbType.NVarChar).Value = (object?)CommercialNumber ?? DBNull.Value;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                CompanyID        = (int)reader["CompanyID"];
+                                CompanyName      = (string)reader["CompanyName"];
+                                ContactPersonID  = reader["ContactPersonID"]  != DBNull.Value ? (int?)reader["ContactPersonID"]  : null;
+                                Phone            = reader["Phone"]            != DBNull.Value ? (string?)reader["Phone"]            : null;
+                                Email            = reader["Email"]            != DBNull.Value ? (string?)reader["Email"]            : null;
+                                Address          = reader["Address"]          != DBNull.Value ? (string?)reader["Address"]          : null;
+                                CountryID        = reader["CountryID"]        != DBNull.Value ? (int?)reader["CountryID"]           : null;
+                                CreatedDate      = (DateTime)reader["CreatedDate"];
+                                CreatedByUserID  = reader["CreatedByUserID"]  != DBNull.Value ? (int?)reader["CreatedByUserID"]    : null;
+                                UpdatedDate      = reader["UpdatedDate"]      != DBNull.Value ? (DateTime)reader["UpdatedDate"]    : DateTime.MinValue;
+                                UpdatedByUserID  = reader["UpdatedByUserID"]  != DBNull.Value ? (int?)reader["UpdatedByUserID"]    : null;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        isFound = false;
+                    }
+                }
+            }
+            return isFound;
+        }
+
+        public static bool GetCompanyByPhone(string Phone, ref int CompanyID, ref string CompanyName, ref int? ContactPersonID, ref string? Email, ref string? Address, ref int? CountryID, ref string? CommercialNumber, ref DateTime CreatedDate, ref int? CreatedByUserID, ref DateTime UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spCompany_GetByPhone", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@Phone", SqlDbType.NVarChar).Value = (object?)Phone ?? DBNull.Value;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                CompanyID        = (int)reader["CompanyID"];
+                                CompanyName      = (string)reader["CompanyName"];
+                                ContactPersonID  = reader["ContactPersonID"]  != DBNull.Value ? (int?)reader["ContactPersonID"]  : null;
+                                Email            = reader["Email"]            != DBNull.Value ? (string?)reader["Email"]            : null;
+                                Address          = reader["Address"]          != DBNull.Value ? (string?)reader["Address"]          : null;
+                                CountryID        = reader["CountryID"]        != DBNull.Value ? (int?)reader["CountryID"]           : null;
+                                CommercialNumber = reader["CommercialNumber"] != DBNull.Value ? (string?)reader["CommercialNumber"] : null;
+                                CreatedDate      = (DateTime)reader["CreatedDate"];
+                                CreatedByUserID  = reader["CreatedByUserID"]  != DBNull.Value ? (int?)reader["CreatedByUserID"]    : null;
+                                UpdatedDate      = reader["UpdatedDate"]      != DBNull.Value ? (DateTime)reader["UpdatedDate"]    : DateTime.MinValue;
+                                UpdatedByUserID  = reader["UpdatedByUserID"]  != DBNull.Value ? (int?)reader["UpdatedByUserID"]    : null;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        isFound = false;
+                    }
+                }
+            }
+            return isFound;
+        }
+
+        public static bool GetCompanyByEmail(string Email, ref int CompanyID, ref string CompanyName, ref int? ContactPersonID, ref string? Phone, ref string? Address, ref int? CountryID, ref string? CommercialNumber, ref DateTime CreatedDate, ref int? CreatedByUserID, ref DateTime UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spCompany_GetByEmail", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@Email", SqlDbType.NVarChar).Value = (object?)Email ?? DBNull.Value;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                CompanyID        = (int)reader["CompanyID"];
+                                CompanyName      = (string)reader["CompanyName"];
+                                ContactPersonID  = reader["ContactPersonID"]  != DBNull.Value ? (int?)reader["ContactPersonID"]  : null;
+                                Phone            = reader["Phone"]            != DBNull.Value ? (string?)reader["Phone"]            : null;
+                                Address          = reader["Address"]          != DBNull.Value ? (string?)reader["Address"]          : null;
+                                CountryID        = reader["CountryID"]        != DBNull.Value ? (int?)reader["CountryID"]           : null;
+                                CommercialNumber = reader["CommercialNumber"] != DBNull.Value ? (string?)reader["CommercialNumber"] : null;
+                                CreatedDate      = (DateTime)reader["CreatedDate"];
+                                CreatedByUserID  = reader["CreatedByUserID"]  != DBNull.Value ? (int?)reader["CreatedByUserID"]    : null;
+                                UpdatedDate      = reader["UpdatedDate"]      != DBNull.Value ? (DateTime)reader["UpdatedDate"]    : DateTime.MinValue;
+                                UpdatedByUserID  = reader["UpdatedByUserID"]  != DBNull.Value ? (int?)reader["UpdatedByUserID"]    : null;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        isFound = false;
+                    }
+                }
+            }
+            return isFound;
+        }
     }
 }

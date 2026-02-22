@@ -18,7 +18,7 @@ namespace RMS_UI.Peoples
     {
         #region Events
 
-        public event EventHandler<clsPerson> PersonSaved;
+        public event EventHandler<clsPerson>? PersonSaved;
 
         #endregion
 
@@ -912,7 +912,7 @@ namespace RMS_UI.Peoples
                         t.Tick += (_, __) => { t.Stop(); t.Dispose(); DialogResult = DialogResult.OK; };
                         t.Start();
                     }
-                    PersonSaved.Invoke(this, _person);
+                    PersonSaved?.Invoke(this, _person);
                 }
                 else
                 {

@@ -30,12 +30,18 @@ namespace RMS_UI.Controls
             ApplyTheme();
         }
 
+        public clsPerson? Person => _person;
+
         public void LoadPerson(clsPerson? person)
         {
             _person = person;
             if (_person != null)
             {
                 LoadPersonInfo();
+            }
+            else
+            {
+                Clear();
             }
         }
 
@@ -166,6 +172,33 @@ namespace RMS_UI.Controls
             _lblUpdatedBy.ForeColor = colors.PrimaryText;
 
             Invalidate();
+        }
+        public void Clear()
+        {
+            _lblPersonID.Text = "ID: N/A";
+            _lblFullName.Text = "Full Name";
+            _lblNationalNo.Text = "National ID: N/A";
+            _lblAddressLabel.Text = "Address:";
+            _lblAddress.Text = "No address provided";
+            _lblCountryLabel.Text = "Country:";
+            _lblCountry.Text = "Not specified";
+            _lblEmailLabel.Text = "Email:";
+            _lblEmail.Text = "No email provided";
+            _lblPhoneLabel.Text = "Phone:";
+            _lblPhone.Text = "No phone provided";
+            _lblGenderLabel.Text = "Gender:";
+            _lblGender.Text = "Not specified";
+            _lblDateLabel.Text = "Date of Birth:";
+            _lblAge.Text = "(0 years)";
+            _lblDateOfBirth.Text = "N/A";
+            _lblCreatedDateLabel.Text = "Created Date:";
+            _lblCreatedDate.Text = "N/A";
+            _lblCreatedByLabel.Text = "Created By:";
+            _lblCreatedBy.Text = "N/A";
+            _lblUpdatedDateLabel.Text = "Updated Date:";
+            _lblUpdatedDate.Text = "N/A";
+            _lblUpdatedByLabel.Text = "Updated By:";
+            _lblUpdatedBy.Text = "N/A";
         }
 
         protected override void OnPaint(PaintEventArgs e)

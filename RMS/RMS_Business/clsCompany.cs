@@ -173,5 +173,81 @@ namespace RMS_Business
         {
             return clsCompanyData.GetAllCompany();
         }
+
+        public static clsCompany? FindByCompanyName(string CompanyName)
+        {
+            int  CompanyID        = -1;
+            int? ContactPersonID  = null;
+            string? Phone         = null;
+            string? Email         = null;
+            string? Address       = null;
+            int? CountryID        = null;
+            string? CommercialNumber = null;
+            DateTime CreatedDate  = DateTime.MinValue;
+            int? CreatedByUserID  = null;
+            DateTime UpdatedDate  = DateTime.MinValue;
+            int? UpdatedByUserID  = null;
+            bool found = clsCompanyData.GetCompanyByCompanyName(CompanyName, ref CompanyID, ref ContactPersonID, ref Phone, ref Email, ref Address, ref CountryID, ref CommercialNumber, ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+            if (found)
+                return new clsCompany() { CompanyID = CompanyID, CompanyName = CompanyName, ContactPersonID = ContactPersonID, Phone = Phone, Email = Email, Address = Address, CountryID = CountryID, CommercialNumber = CommercialNumber, CreatedDate = CreatedDate, CreatedByUserID = CreatedByUserID, UpdatedDate = UpdatedDate, UpdatedByUserID = UpdatedByUserID, Mode = enMode.Update };
+            else return null;
+        }
+
+        public static clsCompany? FindByCommercialNumber(string CommercialNumber)
+        {
+            int  CompanyID        = -1;
+            string CompanyName    = string.Empty;
+            int? ContactPersonID  = null;
+            string? Phone         = null;
+            string? Email         = null;
+            string? Address       = null;
+            int? CountryID        = null;
+            DateTime CreatedDate  = DateTime.MinValue;
+            int? CreatedByUserID  = null;
+            DateTime UpdatedDate  = DateTime.MinValue;
+            int? UpdatedByUserID  = null;
+            bool found = clsCompanyData.GetCompanyByCommercialNumber(CommercialNumber, ref CompanyID, ref CompanyName, ref ContactPersonID, ref Phone, ref Email, ref Address, ref CountryID, ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+            if (found)
+                return new clsCompany() { CompanyID = CompanyID, CompanyName = CompanyName, ContactPersonID = ContactPersonID, Phone = Phone, Email = Email, Address = Address, CountryID = CountryID, CommercialNumber = CommercialNumber, CreatedDate = CreatedDate, CreatedByUserID = CreatedByUserID, UpdatedDate = UpdatedDate, UpdatedByUserID = UpdatedByUserID, Mode = enMode.Update };
+            else return null;
+        }
+
+        public static clsCompany? FindByPhone(string Phone)
+        {
+            int  CompanyID        = -1;
+            string CompanyName    = string.Empty;
+            int? ContactPersonID  = null;
+            string? Email         = null;
+            string? Address       = null;
+            int? CountryID        = null;
+            string? CommercialNumber = null;
+            DateTime CreatedDate  = DateTime.MinValue;
+            int? CreatedByUserID  = null;
+            DateTime UpdatedDate  = DateTime.MinValue;
+            int? UpdatedByUserID  = null;
+            bool found = clsCompanyData.GetCompanyByPhone(Phone, ref CompanyID, ref CompanyName, ref ContactPersonID, ref Email, ref Address, ref CountryID, ref CommercialNumber, ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+            if (found)
+                return new clsCompany() { CompanyID = CompanyID, CompanyName = CompanyName, ContactPersonID = ContactPersonID, Phone = Phone, Email = Email, Address = Address, CountryID = CountryID, CommercialNumber = CommercialNumber, CreatedDate = CreatedDate, CreatedByUserID = CreatedByUserID, UpdatedDate = UpdatedDate, UpdatedByUserID = UpdatedByUserID, Mode = enMode.Update };
+            else return null;
+        }
+
+        public static clsCompany? FindByEmail(string Email)
+        {
+            int  CompanyID        = -1;
+            string CompanyName    = string.Empty;
+            int? ContactPersonID  = null;
+            string? Phone         = null;
+            string? Address       = null;
+            int? CountryID        = null;
+            string? CommercialNumber = null;
+            DateTime CreatedDate  = DateTime.MinValue;
+            int? CreatedByUserID  = null;
+            DateTime UpdatedDate  = DateTime.MinValue;
+            int? UpdatedByUserID  = null;
+            bool found = clsCompanyData.GetCompanyByEmail(Email, ref CompanyID, ref CompanyName, ref ContactPersonID, ref Phone, ref Address, ref CountryID, ref CommercialNumber, ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+            if (found)
+                return new clsCompany() { CompanyID = CompanyID, CompanyName = CompanyName, ContactPersonID = ContactPersonID, Phone = Phone, Email = Email, Address = Address, CountryID = CountryID, CommercialNumber = CommercialNumber, CreatedDate = CreatedDate, CreatedByUserID = CreatedByUserID, UpdatedDate = UpdatedDate, UpdatedByUserID = UpdatedByUserID, Mode = enMode.Update };
+            else return null;
+        }
     }
 }

@@ -22,6 +22,8 @@ namespace RMS_UI.Companies
         private const int DWMWCP_ROUND = 2;
 
         // ── Properties ───────────────────────────────────────────────────────────
+        [System.ComponentModel.DesignerSerializationVisibility(
+    System.ComponentModel.DesignerSerializationVisibility.Hidden)]
         public clsCompany? SavedCompany { get; private set; }
 
         // ── Fields ───────────────────────────────────────────────────────────────
