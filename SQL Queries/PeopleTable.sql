@@ -148,3 +148,54 @@ BEGIN
 END
 GO
 
+
+-- ============================================================
+-- GET PERSON BY NATIONAL NO
+-- ============================================================
+CREATE OR ALTER PROCEDURE spPeople_GetByNationalNo
+    @NationalNo NVARCHAR(20)
+AS
+BEGIN
+    SELECT PersonID, NationalNo, FirstName, SecondName, ThirdName, LastName,
+           DateOfBirth, Gender, Address, Phone, Email, NationalityCountryID, ImagePath,
+           CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID
+    FROM People
+    WHERE NationalNo = @NationalNo
+      AND ISNULL(IsDeleted, 0) = 0;
+END
+GO
+
+
+-- ============================================================
+-- GET PERSON BY EMAIL
+-- ============================================================
+CREATE OR ALTER PROCEDURE spPeople_GetByEmail
+    @Email NVARCHAR(100)
+AS
+BEGIN
+    SELECT PersonID, NationalNo, FirstName, SecondName, ThirdName, LastName,
+           DateOfBirth, Gender, Address, Phone, Email, NationalityCountryID, ImagePath,
+           CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID
+    FROM People
+    WHERE Email = @Email
+      AND ISNULL(IsDeleted, 0) = 0;
+END
+GO
+
+
+-- ============================================================
+-- GET PERSON BY PHONE
+-- ============================================================
+CREATE OR ALTER PROCEDURE spPeople_GetByPhone
+    @Phone NVARCHAR(20)
+AS
+BEGIN
+    SELECT PersonID, NationalNo, FirstName, SecondName, ThirdName, LastName,
+           DateOfBirth, Gender, Address, Phone, Email, NationalityCountryID, ImagePath,
+           CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID
+    FROM People
+    WHERE Phone = @Phone
+      AND ISNULL(IsDeleted, 0) = 0;
+END
+GO
+

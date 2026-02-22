@@ -16,6 +16,12 @@ namespace RMS_UI.Peoples
     /// </summary>
     public partial class frmPersonDialog : Form
     {
+        #region Events
+
+        public event EventHandler<clsPerson> PersonSaved;
+
+        #endregion
+
         #region Fields
         private int _personId;
         private clsPerson? _person;
@@ -906,6 +912,7 @@ namespace RMS_UI.Peoples
                         t.Tick += (_, __) => { t.Stop(); t.Dispose(); DialogResult = DialogResult.OK; };
                         t.Start();
                     }
+                    PersonSaved.Invoke(this, _person);
                 }
                 else
                 {

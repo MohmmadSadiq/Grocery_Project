@@ -28,18 +28,31 @@
         /// </summary>
         private void InitializeComponent()
         {
+            ctrlAddEditCompany1 = new Companies.ctrlAddEditCompany();
             SuspendLayout();
+            // 
+            // ctrlAddEditCompany1
+            // 
+            ctrlAddEditCompany1.BackColor = Color.FromArgb(245, 247, 250);
+            ctrlAddEditCompany1.Location = new Point(179, 12);
+            ctrlAddEditCompany1.Name = "ctrlAddEditCompany1";
+            ctrlAddEditCompany1.Size = new Size(548, 800);
+            ctrlAddEditCompany1.TabIndex = 0;
+            ctrlAddEditCompany1.Load += ctrlAddEditCompany1_Load;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(938, 629);
+            ClientSize = new Size(938, 822);
+            Controls.Add(ctrlAddEditCompany1);
             Name = "Form1";
             Text = "Form1";
             ResumeLayout(false);
         }
 
         #endregion
+
+        private Companies.ctrlAddEditCompany ctrlAddEditCompany1;
     }
 }

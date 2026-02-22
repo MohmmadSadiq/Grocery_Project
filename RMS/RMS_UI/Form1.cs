@@ -16,5 +16,10 @@ namespace RMS_UI
         {
             InitializeComponent();
         }
+
+        private void ctrlAddEditCompany1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

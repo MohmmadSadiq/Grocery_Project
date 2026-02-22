@@ -230,6 +230,75 @@ namespace RMS_Business
                 return null;
         }
 
+        public static clsPerson? FindByNationalNo(string NationalNo)
+        {
+            int PersonID = -1;
+            string? NatNo = null, SecondName = null, ThirdName = null, Address = null,
+                    Phone = null, Email = null, ImagePath = null;
+            string FirstName = "", LastName = "";
+            DateTime? DateOfBirth = null, CreatedDate = null, UpdatedDate = null;
+            byte? Gender = null;
+            int? NationalityCountryID = null, CreatedByUserID = null, UpdatedByUserID = null;
+
+            bool IsFound = clsPersonData.GetPersonInfoByNationalNo(
+                NationalNo, ref PersonID, ref NatNo, ref FirstName, ref SecondName,
+                ref ThirdName, ref LastName, ref DateOfBirth, ref Gender, ref Address,
+                ref Phone, ref Email, ref NationalityCountryID, ref ImagePath,
+                ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+
+            return IsFound
+                ? new clsPerson(PersonID, NatNo, FirstName, SecondName, ThirdName, LastName,
+                    DateOfBirth, Gender, Address, Phone, Email, NationalityCountryID,
+                    ImagePath, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID)
+                : null;
+        }
+
+        public static clsPerson? FindByEmail(string Email)
+        {
+            int PersonID = -1;
+            string? NationalNo = null, SecondName = null, ThirdName = null, Address = null,
+                    Phone = null, Eml = null, ImagePath = null;
+            string FirstName = "", LastName = "";
+            DateTime? DateOfBirth = null, CreatedDate = null, UpdatedDate = null;
+            byte? Gender = null;
+            int? NationalityCountryID = null, CreatedByUserID = null, UpdatedByUserID = null;
+
+            bool IsFound = clsPersonData.GetPersonInfoByEmail(
+                Email, ref PersonID, ref NationalNo, ref FirstName, ref SecondName,
+                ref ThirdName, ref LastName, ref DateOfBirth, ref Gender, ref Address,
+                ref Phone, ref Eml, ref NationalityCountryID, ref ImagePath,
+                ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+
+            return IsFound
+                ? new clsPerson(PersonID, NationalNo, FirstName, SecondName, ThirdName, LastName,
+                    DateOfBirth, Gender, Address, Phone, Eml, NationalityCountryID,
+                    ImagePath, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID)
+                : null;
+        }
+
+        public static clsPerson? FindByPhone(string Phone)
+        {
+            int PersonID = -1;
+            string? NationalNo = null, SecondName = null, ThirdName = null, Address = null,
+                    Phn = null, Email = null, ImagePath = null;
+            string FirstName = "", LastName = "";
+            DateTime? DateOfBirth = null, CreatedDate = null, UpdatedDate = null;
+            byte? Gender = null;
+            int? NationalityCountryID = null, CreatedByUserID = null, UpdatedByUserID = null;
+
+            bool IsFound = clsPersonData.GetPersonInfoByPhone(
+                Phone, ref PersonID, ref NationalNo, ref FirstName, ref SecondName,
+                ref ThirdName, ref LastName, ref DateOfBirth, ref Gender, ref Address,
+                ref Phn, ref Email, ref NationalityCountryID, ref ImagePath,
+                ref CreatedDate, ref CreatedByUserID, ref UpdatedDate, ref UpdatedByUserID);
+
+            return IsFound
+                ? new clsPerson(PersonID, NationalNo, FirstName, SecondName, ThirdName, LastName,
+                    DateOfBirth, Gender, Address, Phn, Email, NationalityCountryID,
+                    ImagePath, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID)
+                : null;
+        }
+
         public bool Save()
         {
             switch (Mode)

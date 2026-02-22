@@ -204,6 +204,7 @@ namespace RMS_UI.Controls
                 var frmPersonCard = new RMS_UI.Forms.frmPersonCard(_company.ContactPerson.PersonID);
                 frmPersonCard.ShowDialog();
             }
+            
         }
 
         protected override void OnLoad(EventArgs e)

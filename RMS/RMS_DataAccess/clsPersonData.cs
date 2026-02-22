@@ -68,6 +68,168 @@ namespace RMS_DataAccess
         }
 
         // ------------------------------------------------------------------------
+        // GET PERSON BY NATIONAL NO
+        // ------------------------------------------------------------------------
+        public static bool GetPersonInfoByNationalNo(string NationalNo, ref int PersonID,
+            ref string? NatNo, ref string FirstName, ref string? SecondName, ref string? ThirdName,
+            ref string LastName, ref DateTime? DateOfBirth, ref byte? Gender, ref string? Address,
+            ref string? Phone, ref string? Email, ref int? NationalityCountryID, ref string? ImagePath,
+            ref DateTime? CreatedDate, ref int? CreatedByUserID, ref DateTime? UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            using (SqlCommand command = new SqlCommand("spPeople_GetByNationalNo", connection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@NationalNo", NationalNo);
+
+                try
+                {
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            isFound = true;
+
+                            PersonID              = (int)reader["PersonID"];
+                            FirstName             = (string)reader["FirstName"];
+                            LastName              = (string)reader["LastName"];
+                            NatNo                 = reader["NationalNo"]           != DBNull.Value ? (string)reader["NationalNo"]               : null;
+                            SecondName            = reader["SecondName"]           != DBNull.Value ? (string)reader["SecondName"]               : null;
+                            ThirdName             = reader["ThirdName"]            != DBNull.Value ? (string)reader["ThirdName"]                : null;
+                            DateOfBirth           = reader["DateOfBirth"]          != DBNull.Value ? (DateTime?)reader["DateOfBirth"]           : null;
+                            Gender                = reader["Gender"]               != DBNull.Value ? (byte?)reader["Gender"]                   : null;
+                            Address               = reader["Address"]              != DBNull.Value ? (string)reader["Address"]                 : null;
+                            Phone                 = reader["Phone"]                != DBNull.Value ? (string)reader["Phone"]                   : null;
+                            Email                 = reader["Email"]                != DBNull.Value ? (string)reader["Email"]                   : null;
+                            NationalityCountryID  = reader["NationalityCountryID"] != DBNull.Value ? (int?)reader["NationalityCountryID"]      : null;
+                            ImagePath             = reader["ImagePath"]            != DBNull.Value ? (string)reader["ImagePath"]               : null;
+                            CreatedDate           = reader["CreatedDate"]          != DBNull.Value ? (DateTime?)reader["CreatedDate"]          : null;
+                            CreatedByUserID       = reader["CreatedByUserID"]      != DBNull.Value ? (int?)reader["CreatedByUserID"]           : null;
+                            UpdatedDate           = reader["UpdatedDate"]          != DBNull.Value ? (DateTime?)reader["UpdatedDate"]          : null;
+                            UpdatedByUserID       = reader["UpdatedByUserID"]      != DBNull.Value ? (int?)reader["UpdatedByUserID"]           : null;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    isFound = false;
+                }
+            }
+            return isFound;
+        }
+
+        // ------------------------------------------------------------------------
+        // GET PERSON BY EMAIL
+        // ------------------------------------------------------------------------
+        public static bool GetPersonInfoByEmail(string Email, ref int PersonID,
+            ref string? NationalNo, ref string FirstName, ref string? SecondName, ref string? ThirdName,
+            ref string LastName, ref DateTime? DateOfBirth, ref byte? Gender, ref string? Address,
+            ref string? Phone, ref string? Eml, ref int? NationalityCountryID, ref string? ImagePath,
+            ref DateTime? CreatedDate, ref int? CreatedByUserID, ref DateTime? UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            using (SqlCommand command = new SqlCommand("spPeople_GetByEmail", connection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@Email", Email);
+
+                try
+                {
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            isFound = true;
+
+                            PersonID              = (int)reader["PersonID"];
+                            FirstName             = (string)reader["FirstName"];
+                            LastName              = (string)reader["LastName"];
+                            NationalNo            = reader["NationalNo"]           != DBNull.Value ? (string)reader["NationalNo"]               : null;
+                            SecondName            = reader["SecondName"]           != DBNull.Value ? (string)reader["SecondName"]               : null;
+                            ThirdName             = reader["ThirdName"]            != DBNull.Value ? (string)reader["ThirdName"]                : null;
+                            DateOfBirth           = reader["DateOfBirth"]          != DBNull.Value ? (DateTime?)reader["DateOfBirth"]           : null;
+                            Gender                = reader["Gender"]               != DBNull.Value ? (byte?)reader["Gender"]                   : null;
+                            Address               = reader["Address"]              != DBNull.Value ? (string)reader["Address"]                 : null;
+                            Phone                 = reader["Phone"]                != DBNull.Value ? (string)reader["Phone"]                   : null;
+                            Eml                   = reader["Email"]                != DBNull.Value ? (string)reader["Email"]                   : null;
+                            NationalityCountryID  = reader["NationalityCountryID"] != DBNull.Value ? (int?)reader["NationalityCountryID"]      : null;
+                            ImagePath             = reader["ImagePath"]            != DBNull.Value ? (string)reader["ImagePath"]               : null;
+                            CreatedDate           = reader["CreatedDate"]          != DBNull.Value ? (DateTime?)reader["CreatedDate"]          : null;
+                            CreatedByUserID       = reader["CreatedByUserID"]      != DBNull.Value ? (int?)reader["CreatedByUserID"]           : null;
+                            UpdatedDate           = reader["UpdatedDate"]          != DBNull.Value ? (DateTime?)reader["UpdatedDate"]          : null;
+                            UpdatedByUserID       = reader["UpdatedByUserID"]      != DBNull.Value ? (int?)reader["UpdatedByUserID"]           : null;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    isFound = false;
+                }
+            }
+            return isFound;
+        }
+
+        // ------------------------------------------------------------------------
+        // GET PERSON BY PHONE
+        // ------------------------------------------------------------------------
+        public static bool GetPersonInfoByPhone(string Phone, ref int PersonID,
+            ref string? NationalNo, ref string FirstName, ref string? SecondName, ref string? ThirdName,
+            ref string LastName, ref DateTime? DateOfBirth, ref byte? Gender, ref string? Address,
+            ref string? Phn, ref string? Email, ref int? NationalityCountryID, ref string? ImagePath,
+            ref DateTime? CreatedDate, ref int? CreatedByUserID, ref DateTime? UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            using (SqlCommand command = new SqlCommand("spPeople_GetByPhone", connection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@Phone", Phone);
+
+                try
+                {
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            isFound = true;
+
+                            PersonID              = (int)reader["PersonID"];
+                            FirstName             = (string)reader["FirstName"];
+                            LastName              = (string)reader["LastName"];
+                            NationalNo            = reader["NationalNo"]           != DBNull.Value ? (string)reader["NationalNo"]               : null;
+                            SecondName            = reader["SecondName"]           != DBNull.Value ? (string)reader["SecondName"]               : null;
+                            ThirdName             = reader["ThirdName"]            != DBNull.Value ? (string)reader["ThirdName"]                : null;
+                            DateOfBirth           = reader["DateOfBirth"]          != DBNull.Value ? (DateTime?)reader["DateOfBirth"]           : null;
+                            Gender                = reader["Gender"]               != DBNull.Value ? (byte?)reader["Gender"]                   : null;
+                            Address               = reader["Address"]              != DBNull.Value ? (string)reader["Address"]                 : null;
+                            Phn                   = reader["Phone"]                != DBNull.Value ? (string)reader["Phone"]                   : null;
+                            Email                 = reader["Email"]                != DBNull.Value ? (string)reader["Email"]                   : null;
+                            NationalityCountryID  = reader["NationalityCountryID"] != DBNull.Value ? (int?)reader["NationalityCountryID"]      : null;
+                            ImagePath             = reader["ImagePath"]            != DBNull.Value ? (string)reader["ImagePath"]               : null;
+                            CreatedDate           = reader["CreatedDate"]          != DBNull.Value ? (DateTime?)reader["CreatedDate"]          : null;
+                            CreatedByUserID       = reader["CreatedByUserID"]      != DBNull.Value ? (int?)reader["CreatedByUserID"]           : null;
+                            UpdatedDate           = reader["UpdatedDate"]          != DBNull.Value ? (DateTime?)reader["UpdatedDate"]          : null;
+                            UpdatedByUserID       = reader["UpdatedByUserID"]      != DBNull.Value ? (int?)reader["UpdatedByUserID"]           : null;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    isFound = false;
+                }
+            }
+            return isFound;
+        }
+
+        // ------------------------------------------------------------------------
         // 2. ADD NEW PERSON
         // ------------------------------------------------------------------------
         public static int AddNewPerson(string? NationalNo, string FirstName, string? SecondName,
