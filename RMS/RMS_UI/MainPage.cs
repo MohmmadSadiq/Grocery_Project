@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using RMS_UI.Controls;
+using RMS_UI.Settings;
 using RMS_UI.Utilities;
 
 namespace RMS_UI.Views
@@ -147,6 +148,9 @@ namespace RMS_UI.Views
                     break;
                 case "Suppliers":
                     LoadContent(new Suppliers_PurchasePage());
+                    break;
+                case "Settings":
+                    LoadContent(new GeneralSettingsPage());
                     break;
                 case "Dashboard":
                     ShowWelcome();
