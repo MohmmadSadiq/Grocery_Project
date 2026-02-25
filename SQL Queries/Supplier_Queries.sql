@@ -124,66 +124,49 @@ CHECK (
     (PersonID IS NOT NULL AND CompanyID IS NULL)
     OR (PersonID IS NULL AND CompanyID IS NOT NULL)
 );
+go
 
 Alter View Suppliers_View as
 SELECT 
-    Suppliers.SupplierID,
-    -- Supplier Type: 'Person' if PersonID is not null, 'Company' if CompanyID is not null
-    CASE 
-        WHEN Suppliers.PersonID IS NOT NULL THEN 'Person'
-        WHEN Suppliers.CompanyID IS NOT NULL THEN 'Company'
-        ELSE 'Unknown'
-    END AS SupplierType,
+    Suppliers.SupplierID, SupplierType = 'Company', 
+	Companies.CompanyName AS SupplierName,
+    Companies.Phone AS Phone,
+	Companies.Email AS Email,
+    Companies.Address AS Address,
     
-    -- Display Name based on type
-    CASE 
-        WHEN Suppliers.PersonID IS NOT NULL THEN People.FullName
-        WHEN Suppliers.CompanyID IS NOT NULL THEN Companies.CompanyName
-        ELSE ''
-    END AS SupplierName,
-    
-    -- Display Phone based on type
-    CASE 
-        WHEN Suppliers.PersonID IS NOT NULL THEN People.Phone
-        WHEN Suppliers.CompanyID IS NOT NULL THEN Companies.Phone
-        ELSE ''
-    END AS Phone,
-    
-    -- Display Email based on type
-    CASE 
-        WHEN Suppliers.PersonID IS NOT NULL THEN People.Email
-        WHEN Suppliers.CompanyID IS NOT NULL THEN Companies.Email
-        ELSE ''
-    END AS Email,
-    
-    -- Display Address based on type
-    CASE 
-        WHEN Suppliers.PersonID IS NOT NULL THEN People.Address
-        WHEN Suppliers.CompanyID IS NOT NULL THEN Companies.Address
-        ELSE ''
-    END AS Address,
-    
-    -- Country ID based on type
    (select CountryName from Countries
-	Where CountryID = CASE 
-        WHEN Suppliers.PersonID IS NOT NULL THEN People.NationalityCountryID
-        WHEN Suppliers.CompanyID IS NOT NULL THEN Companies.CountryID
-        ELSE NULL
-    END ) As Country 
+	Where CountryID = Companies.CountryID) As Country 
 	,
 	IsActive
     ,Suppliers.CompanyID
 	,Suppliers.PersonID
     
-    
-    
-
 FROM Companies
-LEFT JOIN People ON Companies.ContactPersonID = People.PersonID
-LEFT JOIN Suppliers ON (Companies.CompanyID = Suppliers.CompanyID OR People.PersonID = Suppliers.PersonID)
+ LEFT JOIN People ON Companies.ContactPersonID = People.PersonID
+ JOIN Suppliers ON (Companies.CompanyID = Suppliers.CompanyID )
+ WHERE Suppliers.IsDeleted = 0 
+ Union
+ SELECT 
+    Suppliers.SupplierID, SupplierType = 'Person', 
+	People.FullName AS SupplierName,
+    People.Phone AS Phone,
+	People.Email AS Email,
+    People.Address AS Address,
+    
+    -- Country ID based on type
+   (select CountryName from Countries
+	Where CountryID = People.NationalityCountryID ) As Country 
+	,
+	IsActive
+    ,Suppliers.CompanyID
+	,Suppliers.PersonID
 
-WHERE Suppliers.SupplierID IS NOT NULL
-And Suppliers.IsDeleted = 0
+FROM  Suppliers
+JOIN People on Suppliers.PersonID = People.PersonID
+
+WHERE Suppliers.IsDeleted = 0 
+
+
 GO
 CREATE OR ALTER PROCEDURE sp_SearchSupplierPages
     @SearchText NVARCHAR(100) = NULL,
@@ -197,6 +180,10 @@ AS
 BEGIN
     SET NOCOUNT ON;
     DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+	IF @SortBy NOT IN ('SupplierID','SupplierName','Phone','Country')
+    SET @SortBy = 'SupplierName';
+	IF @PageNumber < 1 SET @PageNumber = 1;
 
     SELECT 
         SupplierID,
@@ -228,10 +215,7 @@ BEGIN
         CASE WHEN @SortBy = 'SupplierName' THEN SupplierName END ASC,
         CASE WHEN @SortBy = 'Phone' THEN Phone END ASC,
         CASE WHEN @SortBy = 'Country' THEN Country END ASC,
-        SupplierName ASC  -- Default secondary sort
+        SupplierName ASC
+		-- Default secondary sort
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 END
-
-
-
-

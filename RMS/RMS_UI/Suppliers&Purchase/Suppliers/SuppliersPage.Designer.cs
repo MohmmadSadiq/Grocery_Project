@@ -124,7 +124,7 @@
             // SuppliersPage
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             BackColor = System.Drawing.Color.FromArgb(248, 250, 252);
             Controls.Add(_dataGrid);
             Controls.Add(_headerPanel);

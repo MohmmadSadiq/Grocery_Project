@@ -39,7 +39,7 @@ namespace RMS_UI.Peoples
             ctrlFindPerson1.Dock = DockStyle.Fill;
             ctrlFindPerson1.Location = new Point(0, 0);
             ctrlFindPerson1.Name = "ctrlFindPerson1";
-            ctrlFindPerson1.Size = new Size(520, 830);
+            ctrlFindPerson1.Size = new Size(520, 671);
             ctrlFindPerson1.TabIndex = 0;
             // 
             // _btnSearch
@@ -81,7 +81,7 @@ namespace RMS_UI.Peoples
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(520, 830);
+            ClientSize = new Size(520, 671);
             Controls.Add(btnAddPerson);
             Controls.Add(_btnSearch);
             Controls.Add(ctrlFindPerson1);

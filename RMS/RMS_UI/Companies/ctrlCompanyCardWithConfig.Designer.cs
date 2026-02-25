@@ -1,4 +1,6 @@
-﻿namespace RMS_UI.Companies
+﻿using RMS_UI.Controls;
+
+namespace RMS_UI.Companies
 {
     partial class ctrlCompanyCardWithConfig
     {
@@ -46,6 +48,7 @@
             // 
             ctrlCompanyCard1.BackColor = Color.FromArgb(255, 255, 255);
             ctrlCompanyCard1.ContextMenuStrip = contextMenuStrip1;
+            ctrlCompanyCard1.AutoScaleMode = AutoScaleMode.None;
             ctrlCompanyCard1.Location = new Point(0, 0);
             ctrlCompanyCard1.Margin = new Padding(10);
             ctrlCompanyCard1.Name = "ctrlCompanyCard1";
@@ -129,7 +132,7 @@
             // ctrlCompanyCardWithConfig
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleMode = AutoScaleMode.None;
             BackColor = Color.Transparent;
             Controls.Add(_btnConfig);
             Controls.Add(ctrlCompanyCard1);

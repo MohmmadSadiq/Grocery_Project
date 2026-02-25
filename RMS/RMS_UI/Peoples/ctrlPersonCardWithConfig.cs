@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace RMS_UI.Peoples
 {
-    public partial class ctrlPersonCardWithConfig : UserControl
+    public partial class ctrlPersonCardWithConfig  : UserControl 
     {
         // Events
         public event EventHandler<PersonEventArgs>? PersonAdded;

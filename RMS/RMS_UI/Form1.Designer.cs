@@ -30,7 +30,7 @@
         {
             components = new System.ComponentModel.Container();
             autoComplete1 = new Syncfusion.Windows.Forms.Tools.AutoComplete(components);
-            ctrlPersonCardWithConfig1 = new Peoples.ctrlPersonCardWithConfig();
+            ctrlAddEditSupplier1 = new Suppliers_Purchase.ctrlAddEditSupplier();
             ((System.ComponentModel.ISupportInitialize)autoComplete1).BeginInit();
             SuspendLayout();
             // 
@@ -41,22 +41,23 @@
             autoComplete1.MetroColor = Color.FromArgb(17, 158, 218);
             autoComplete1.ParentForm = this;
             // 
-            // ctrlPersonCardWithConfig1
+            // ctrlAddEditSupplier1
             // 
-            ctrlPersonCardWithConfig1.BackColor = Color.Transparent;
-            ctrlPersonCardWithConfig1.Location = new Point(197, 12);
-            ctrlPersonCardWithConfig1.Name = "ctrlPersonCardWithConfig1";
-            ctrlPersonCardWithConfig1.Size = new Size(467, 713);
-            ctrlPersonCardWithConfig1.TabIndex = 0;
+            ctrlAddEditSupplier1.BackColor = Color.FromArgb(245, 247, 250);
+            ctrlAddEditSupplier1.Location = new Point(191, 12);
+            ctrlAddEditSupplier1.Name = "ctrlAddEditSupplier1";
+            ctrlAddEditSupplier1.Size = new Size(560, 900);
+            ctrlAddEditSupplier1.TabIndex = 0;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(938, 822);
-            Controls.Add(ctrlPersonCardWithConfig1);
+            ClientSize = new Size(938, 958);
+            Controls.Add(ctrlAddEditSupplier1);
             Name = "Form1";
             Text = "Form1";
+            Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)autoComplete1).EndInit();
             ResumeLayout(false);
         }
@@ -64,6 +65,6 @@
         #endregion
 
         private Syncfusion.Windows.Forms.Tools.AutoComplete autoComplete1;
-        private Peoples.ctrlPersonCardWithConfig ctrlPersonCardWithConfig1;
+        private Suppliers_Purchase.ctrlAddEditSupplier ctrlAddEditSupplier1;
     }
 }

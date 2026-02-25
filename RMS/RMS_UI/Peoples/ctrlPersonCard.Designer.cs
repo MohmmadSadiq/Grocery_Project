@@ -80,7 +80,7 @@
             _pnlContainer.Margin = new Padding(4, 3, 4, 3);
             _pnlContainer.Name = "_pnlContainer";
             _pnlContainer.Padding = new Padding(18, 17, 18, 17);
-            _pnlContainer.Size = new Size(467, 713);
+            _pnlContainer.Size = new Size(467, 553);
             _pnlContainer.TabIndex = 0;
             // 
             // _pnlImageSection
@@ -167,11 +167,11 @@
             _pnlContactSection.Controls.Add(_lblPhoneLabel);
             _pnlContactSection.Controls.Add(_lblPhone);
             _pnlContactSection.Dock = DockStyle.Bottom;
-            _pnlContactSection.Location = new Point(18, 298);
+            _pnlContactSection.Location = new Point(18, 293);
             _pnlContactSection.Margin = new Padding(4, 3, 4, 3);
             _pnlContactSection.Name = "_pnlContactSection";
             _pnlContactSection.Padding = new Padding(0, 12, 0, 12);
-            _pnlContactSection.Size = new Size(431, 179);
+            _pnlContactSection.Size = new Size(431, 94);
             _pnlContactSection.TabIndex = 2;
             // 
             // _lblAddressLabel
@@ -179,7 +179,7 @@
             _lblAddressLabel.AutoSize = true;
             _lblAddressLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             _lblAddressLabel.ForeColor = Color.FromArgb(100, 116, 139);
-            _lblAddressLabel.Location = new Point(0, 91);
+            _lblAddressLabel.Location = new Point(233, 48);
             _lblAddressLabel.Margin = new Padding(4, 0, 4, 0);
             _lblAddressLabel.Name = "_lblAddressLabel";
             _lblAddressLabel.Size = new Size(54, 15);
@@ -192,7 +192,7 @@
             _lblAddress.AutoSize = true;
             _lblAddress.Font = new Font("Segoe UI", 9F);
             _lblAddress.ForeColor = Color.FromArgb(51, 65, 85);
-            _lblAddress.Location = new Point(0, 111);
+            _lblAddress.Location = new Point(233, 68);
             _lblAddress.Margin = new Padding(4, 0, 4, 0);
             _lblAddress.Name = "_lblAddress";
             _lblAddress.Size = new Size(116, 15);
@@ -204,7 +204,7 @@
             _lblCountryLabel.AutoSize = true;
             _lblCountryLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             _lblCountryLabel.ForeColor = Color.FromArgb(100, 116, 139);
-            _lblCountryLabel.Location = new Point(0, 130);
+            _lblCountryLabel.Location = new Point(233, 6);
             _lblCountryLabel.Margin = new Padding(4, 0, 4, 0);
             _lblCountryLabel.Name = "_lblCountryLabel";
             _lblCountryLabel.Size = new Size(54, 15);
@@ -217,7 +217,7 @@
             _lblCountry.AutoSize = true;
             _lblCountry.Font = new Font("Segoe UI", 9F);
             _lblCountry.ForeColor = Color.FromArgb(51, 65, 85);
-            _lblCountry.Location = new Point(0, 150);
+            _lblCountry.Location = new Point(233, 26);
             _lblCountry.Margin = new Padding(4, 0, 4, 0);
             _lblCountry.Name = "_lblCountry";
             _lblCountry.Size = new Size(77, 15);
@@ -282,11 +282,11 @@
             _pnlPersonalInfo.Controls.Add(_lblAge);
             _pnlPersonalInfo.Controls.Add(_lblDateOfBirth);
             _pnlPersonalInfo.Dock = DockStyle.Bottom;
-            _pnlPersonalInfo.Location = new Point(18, 477);
+            _pnlPersonalInfo.Location = new Point(18, 387);
             _pnlPersonalInfo.Margin = new Padding(4, 3, 4, 3);
             _pnlPersonalInfo.Name = "_pnlPersonalInfo";
             _pnlPersonalInfo.Padding = new Padding(0, 12, 0, 0);
-            _pnlPersonalInfo.Size = new Size(431, 92);
+            _pnlPersonalInfo.Size = new Size(431, 48);
             _pnlPersonalInfo.TabIndex = 3;
             // 
             // _lblGenderLabel
@@ -294,7 +294,7 @@
             _lblGenderLabel.AutoSize = true;
             _lblGenderLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             _lblGenderLabel.ForeColor = Color.FromArgb(100, 116, 139);
-            _lblGenderLabel.Location = new Point(0, 52);
+            _lblGenderLabel.Location = new Point(233, 3);
             _lblGenderLabel.Margin = new Padding(4, 0, 4, 0);
             _lblGenderLabel.Name = "_lblGenderLabel";
             _lblGenderLabel.Size = new Size(52, 15);
@@ -306,7 +306,7 @@
             _lblGender.AutoSize = true;
             _lblGender.Font = new Font("Segoe UI", 9F);
             _lblGender.ForeColor = Color.FromArgb(51, 65, 85);
-            _lblGender.Location = new Point(0, 72);
+            _lblGender.Location = new Point(233, 23);
             _lblGender.Margin = new Padding(4, 0, 4, 0);
             _lblGender.Name = "_lblGender";
             _lblGender.Size = new Size(77, 15);
@@ -360,11 +360,11 @@
             _pnlAuditInfo.Controls.Add(_lblUpdatedByLabel);
             _pnlAuditInfo.Controls.Add(_lblUpdatedBy);
             _pnlAuditInfo.Dock = DockStyle.Bottom;
-            _pnlAuditInfo.Location = new Point(18, 569);
+            _pnlAuditInfo.Location = new Point(18, 435);
             _pnlAuditInfo.Margin = new Padding(4, 3, 4, 3);
             _pnlAuditInfo.Name = "_pnlAuditInfo";
             _pnlAuditInfo.Padding = new Padding(0, 12, 0, 0);
-            _pnlAuditInfo.Size = new Size(431, 127);
+            _pnlAuditInfo.Size = new Size(431, 101);
             _pnlAuditInfo.TabIndex = 4;
             // 
             // _lblCreatedDateLabel
@@ -469,9 +469,9 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Transparent;
             Controls.Add(_pnlContainer);
-            Margin = new Padding(12, 12, 12, 12);
+            Margin = new Padding(12);
             Name = "ctrlPersonCard";
-            Size = new Size(467, 713);
+            Size = new Size(467, 553);
             _pnlContainer.ResumeLayout(false);
             _pnlImageSection.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)_picPersonImage).EndInit();

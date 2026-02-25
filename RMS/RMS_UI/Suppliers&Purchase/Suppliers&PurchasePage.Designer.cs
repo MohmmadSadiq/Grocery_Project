@@ -58,10 +58,10 @@
             // 
             // tabPage2
             // 
-            tabPage2.Location = new Point(4, 41);
+            tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(1234, 638);
+            tabPage2.Size = new Size(192, 72);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "📋📦Purchases";
             tabPage2.UseVisualStyleBackColor = true;

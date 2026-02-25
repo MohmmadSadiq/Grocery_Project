@@ -34,6 +34,7 @@ namespace RMS_UI.Views
             sidebarPanel = new Panel();
             btnSettings = new Button();
             btnReports = new Button();
+            btnSuppliers = new Button();
             btnProducts = new Button();
             btnPOS = new Button();
             btnDashboard = new Button();
@@ -53,6 +54,7 @@ namespace RMS_UI.Views
             sidebarPanel.BackColor = Color.FromArgb(248, 250, 252);
             sidebarPanel.Controls.Add(btnSettings);
             sidebarPanel.Controls.Add(btnReports);
+            sidebarPanel.Controls.Add(btnSuppliers);
             sidebarPanel.Controls.Add(btnProducts);
             sidebarPanel.Controls.Add(btnPOS);
             sidebarPanel.Controls.Add(btnDashboard);
@@ -75,12 +77,12 @@ namespace RMS_UI.Views
             btnSettings.Font = new Font("Segoe UI", 15.75F);
             btnSettings.ForeColor = Color.FromArgb(51, 65, 85);
             btnSettings.ImageAlign = ContentAlignment.MiddleLeft;
-            btnSettings.Location = new Point(0, 340);
+            btnSettings.Location = new Point(0, 400);
             btnSettings.Margin = new Padding(2);
             btnSettings.Name = "btnSettings";
             btnSettings.Padding = new Padding(16, 0, 0, 0);
             btnSettings.Size = new Size(260, 60);
-            btnSettings.TabIndex = 5;
+            btnSettings.TabIndex = 6;
             btnSettings.Tag = "⚙️";
             btnSettings.Text = "⚙️  Settings";
             btnSettings.TextAlign = ContentAlignment.MiddleLeft;
@@ -97,16 +99,38 @@ namespace RMS_UI.Views
             btnReports.Font = new Font("Segoe UI", 15.75F);
             btnReports.ForeColor = Color.FromArgb(51, 65, 85);
             btnReports.ImageAlign = ContentAlignment.MiddleLeft;
-            btnReports.Location = new Point(0, 280);
+            btnReports.Location = new Point(0, 340);
             btnReports.Margin = new Padding(2);
             btnReports.Name = "btnReports";
             btnReports.Padding = new Padding(16, 0, 0, 0);
             btnReports.Size = new Size(260, 60);
-            btnReports.TabIndex = 4;
+            btnReports.TabIndex = 5;
             btnReports.Tag = "📊";
             btnReports.Text = "📊  Reports";
             btnReports.TextAlign = ContentAlignment.MiddleLeft;
             btnReports.UseVisualStyleBackColor = false;
+            // 
+            // btnSuppliers
+            // 
+            btnSuppliers.BackColor = Color.Transparent;
+            btnSuppliers.Cursor = Cursors.Hand;
+            btnSuppliers.Dock = DockStyle.Top;
+            btnSuppliers.FlatAppearance.BorderSize = 0;
+            btnSuppliers.FlatAppearance.MouseOverBackColor = Color.FromArgb(219, 234, 254);
+            btnSuppliers.FlatStyle = FlatStyle.Flat;
+            btnSuppliers.Font = new Font("Segoe UI", 15.75F);
+            btnSuppliers.ForeColor = Color.FromArgb(51, 65, 85);
+            btnSuppliers.ImageAlign = ContentAlignment.MiddleLeft;
+            btnSuppliers.Location = new Point(0, 280);
+            btnSuppliers.Margin = new Padding(2);
+            btnSuppliers.Name = "btnSuppliers";
+            btnSuppliers.Padding = new Padding(16, 0, 0, 0);
+            btnSuppliers.Size = new Size(260, 60);
+            btnSuppliers.TabIndex = 4;
+            btnSuppliers.Tag = "🚚";
+            btnSuppliers.Text = "🚚  Suppliers";
+            btnSuppliers.TextAlign = ContentAlignment.MiddleLeft;
+            btnSuppliers.UseVisualStyleBackColor = false;
             // 
             // btnProducts
             // 
@@ -282,6 +306,7 @@ namespace RMS_UI.Views
         private System.Windows.Forms.Button btnPOS;
         private System.Windows.Forms.Button btnProducts;
         private System.Windows.Forms.Button btnReports;
+        private System.Windows.Forms.Button btnSuppliers;
         private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Panel contentPanel;
         private System.Windows.Forms.Label lblWelcome;

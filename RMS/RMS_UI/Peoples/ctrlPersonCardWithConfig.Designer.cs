@@ -43,45 +43,46 @@
             // 
             ctrlPersonCard1.BackColor = Color.FromArgb(255, 255, 255);
             ctrlPersonCard1.ContextMenuStrip = contextMenuStrip1;
+            ctrlPersonCard1.AutoScaleMode = AutoScaleMode.None;
             ctrlPersonCard1.Location = new Point(0, 0);
             ctrlPersonCard1.Margin = new Padding(10);
             ctrlPersonCard1.Name = "ctrlPersonCard1";
-            ctrlPersonCard1.Size = new Size(467, 713);
+            ctrlPersonCard1.Size = new Size(467, 540);
             ctrlPersonCard1.TabIndex = 0;
             // 
             // contextMenuStrip1
             // 
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { findToolStripMenuItem, addNewToolStripMenuItem, editToolStripMenuItem, clearToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(181, 114);
+            contextMenuStrip1.Size = new Size(139, 92);
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // findToolStripMenuItem
             // 
             findToolStripMenuItem.Name = "findToolStripMenuItem";
-            findToolStripMenuItem.Size = new Size(180, 22);
+            findToolStripMenuItem.Size = new Size(138, 22);
             findToolStripMenuItem.Text = "🔎 Find";
             findToolStripMenuItem.Click += findToolStripMenuItem_Click;
             // 
             // addNewToolStripMenuItem
             // 
             addNewToolStripMenuItem.Name = "addNewToolStripMenuItem";
-            addNewToolStripMenuItem.Size = new Size(180, 22);
+            addNewToolStripMenuItem.Size = new Size(138, 22);
             addNewToolStripMenuItem.Text = "➕ Add New";
             addNewToolStripMenuItem.Click += addNewToolStripMenuItem_Click;
             // 
             // editToolStripMenuItem
             // 
             editToolStripMenuItem.Name = "editToolStripMenuItem";
-            editToolStripMenuItem.Size = new Size(180, 22);
+            editToolStripMenuItem.Size = new Size(138, 22);
             editToolStripMenuItem.Text = "✍️ Edit";
             editToolStripMenuItem.Click += editToolStripMenuItem_Click;
             // 
             // clearToolStripMenuItem
             // 
             clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-            clearToolStripMenuItem.Size = new Size(180, 22);
-            clearToolStripMenuItem.Text = "🧹 Clear";
+            clearToolStripMenuItem.Size = new Size(138, 22);
+            clearToolStripMenuItem.Text = "\U0001f9f9 Clear";
             clearToolStripMenuItem.Click += clearToolStripMenuItem_Click;
             // 
             // _btnConfig
@@ -106,12 +107,12 @@
             // ctrlPersonCardWithConfig
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleMode = AutoScaleMode.None;
             BackColor = Color.Transparent;
             Controls.Add(_btnConfig);
             Controls.Add(ctrlPersonCard1);
             Name = "ctrlPersonCardWithConfig";
-            Size = new Size(467, 713);
+            Size = new Size(467, 541);
             contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);
         }

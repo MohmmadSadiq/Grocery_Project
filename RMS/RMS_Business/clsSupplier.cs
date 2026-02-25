@@ -146,20 +146,34 @@ namespace RMS_Business
         {
             return clsSupplierData.GetAllSupplier();
         }
-        public static DataTable SearchSupplierPages(string? searchText = null, string searchBy = "SupplierName", string? supplierType = null, bool? isActive = null, int pageNumber = 1, int pageSize = 20, string sortBy = "SupplierName")
+        public static DataTable SearchSupplierPages(SupplierSearchCriteria criteria)
         {
-            return clsSupplierData.SearchSupplierPages(searchText, searchBy, supplierType, isActive, pageNumber, pageSize, sortBy);
+            return clsSupplierData.SearchSupplierPages(criteria.ToDataAccessCriteria());
         }
         
         public class SupplierSearchCriteria
         {
-            public string SearchText { get; set; } = "";
+            public string? SearchText { get; set; }
             public string SearchBy { get; set; } = "SupplierName"; // SupplierName, Phone, Code
-            public string? SupplierType { get; set; } = null; // Person, Company, null for all
-            public bool? IsActive { get; set; } // Nullable for "All" tab
+            public string? SupplierType { get; set; } = null;      // Person, Company, null for all
+            public bool? IsActive { get; set; }                    // null for "All" tab
             public int PageNumber { get; set; } = 1;
             public int PageSize { get; set; } = 20;
             public string SortBy { get; set; } = "SupplierName"; // SupplierName, Phone, Code, Country
+
+            public clsSupplierData.SupplierSearchCriteria ToDataAccessCriteria()
+            {
+                return new clsSupplierData.SupplierSearchCriteria
+                {
+                    SearchText   = this.SearchText,
+                    SearchBy     = this.SearchBy,
+                    SupplierType = this.SupplierType,
+                    IsActive     = this.IsActive,
+                    PageNumber   = this.PageNumber,
+                    PageSize     = this.PageSize,
+                    SortBy       = this.SortBy
+                };
+            }
 
             /// <summary>
             /// Checks if the search criteria is in its default state.
@@ -169,38 +183,5 @@ namespace RMS_Business
                 return string.IsNullOrEmpty(SearchText) && string.IsNullOrEmpty(SupplierType) && !IsActive.HasValue && PageNumber == 1 && PageSize == 20;
             }
         }
-        
-        public class ProductSearchCriteria
-        {
-            public string SearchText { get; set; } = "";
-            public string SearchBy { get; set; } = "Name"; // Name, ID, Category, Brand
-            public int? CategoryId { get; set; }
-            public bool? IsActive { get; set; } // Nullable for "All" tab
-            public int PageNumber { get; set; } = 1;
-            public int PageSize { get; set; } = 20;
-            public string SortBy { get; set; } = "Name";
-
-            public clsProductData.ProductSearchCriteria ToDataAccessCriteria()
-            {
-                return new clsProductData.ProductSearchCriteria
-                {
-                    SearchText = this.SearchText,
-                    SearchBy = this.SearchBy,
-                    CategoryId = this.CategoryId,
-                    IsActive = this.IsActive,
-                    PageNumber = this.PageNumber,
-                    PageSize = this.PageSize,
-                    SortBy = this.SortBy
-                };
-            }
-            /// <summary>
-            /// Checks if the search criteria is in its default state.
-            /// </summary>
-            public bool IsDefault()
-            {
-                return string.IsNullOrEmpty(SearchText) && !CategoryId.HasValue && !IsActive.HasValue && PageNumber == 1 && PageSize == 20 && string.IsNullOrEmpty(SortBy);
-            }
-        }
-        
     }
 }

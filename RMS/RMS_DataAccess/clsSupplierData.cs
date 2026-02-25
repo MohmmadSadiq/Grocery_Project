@@ -154,7 +154,18 @@ namespace RMS_DataAccess
             }
             return dt;
         }
-        public static DataTable SearchSupplierPages(string? searchText = null, string searchBy = "SupplierName", string? supplierType = null, bool? isActive = null, int pageNumber = 1, int pageSize = 20, string sortBy = "SupplierName")
+        public class SupplierSearchCriteria
+        {
+            public string? SearchText { get; set; }
+            public string SearchBy { get; set; } = "SupplierName"; // SupplierName, Phone, Code
+            public string? SupplierType { get; set; }              // Person, Company, null for all
+            public bool? IsActive { get; set; }                    // null for all
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+            public string SortBy { get; set; } = "SupplierName";
+        }
+
+        public static DataTable SearchSupplierPages(SupplierSearchCriteria criteria)
         {
             DataTable dt = new DataTable();
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -162,13 +173,16 @@ namespace RMS_DataAccess
                 using (SqlCommand command = new SqlCommand("sp_SearchSupplierPages", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar, 100).Value = (object?)searchText ?? DBNull.Value;
-                    command.Parameters.AddWithValue("@SearchBy", searchBy ?? "SupplierName");
-                    command.Parameters.Add("@SupplierType", SqlDbType.NVarChar, 20).Value = (object?)supplierType ?? DBNull.Value;
-                    command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = (object?)isActive ?? DBNull.Value;
-                    command.Parameters.AddWithValue("@PageNumber", pageNumber);
-                    command.Parameters.AddWithValue("@PageSize", pageSize);
-                    command.Parameters.AddWithValue("@SortBy", sortBy ?? "SupplierName");
+                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar, 100).Value =
+                        string.IsNullOrWhiteSpace(criteria.SearchText) ? DBNull.Value : criteria.SearchText;
+                    command.Parameters.Add("@SearchBy", SqlDbType.NVarChar, 50).Value = criteria.SearchBy;
+                    command.Parameters.Add("@SupplierType", SqlDbType.NVarChar, 20).Value =
+                        (object?)criteria.SupplierType ?? DBNull.Value;
+                    command.Parameters.Add("@IsActive", SqlDbType.Bit).Value =
+                        criteria.IsActive.HasValue ? criteria.IsActive.Value : DBNull.Value;
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value = criteria.PageNumber;
+                    command.Parameters.Add("@PageSize", SqlDbType.Int).Value = criteria.PageSize;
+                    command.Parameters.Add("@SortBy", SqlDbType.NVarChar, 50).Value = criteria.SortBy;
                     try
                     {
                         connection.Open();

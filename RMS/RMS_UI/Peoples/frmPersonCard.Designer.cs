@@ -43,7 +43,7 @@
             _btnClose.FlatStyle = FlatStyle.Flat;
             _btnClose.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             _btnClose.ForeColor = Color.White;
-            _btnClose.Location = new Point(387, 729);
+            _btnClose.Location = new Point(387, 553);
             _btnClose.Name = "_btnClose";
             _btnClose.Size = new Size(87, 35);
             _btnClose.TabIndex = 1;
@@ -57,7 +57,7 @@
             ctrlPersonCard1.Location = new Point(4, 6);
             ctrlPersonCard1.Margin = new Padding(12);
             ctrlPersonCard1.Name = "ctrlPersonCard1";
-            ctrlPersonCard1.Size = new Size(467, 713);
+            ctrlPersonCard1.Size = new Size(467, 535);
             ctrlPersonCard1.TabIndex = 2;
             // 
             // frmPersonCard
@@ -65,7 +65,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
-            ClientSize = new Size(486, 776);
+            ClientSize = new Size(486, 600);
             Controls.Add(ctrlPersonCard1);
             Controls.Add(_btnClose);
             FormBorderStyle = FormBorderStyle.FixedDialog;

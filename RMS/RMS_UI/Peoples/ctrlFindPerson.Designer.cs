@@ -153,7 +153,7 @@
             _ctrlPersonCard.Location = new Point(0, 128);
             _ctrlPersonCard.Margin = new Padding(0);
             _ctrlPersonCard.Name = "_ctrlPersonCard";
-            _ctrlPersonCard.Size = new Size(520, 694);
+            _ctrlPersonCard.Size = new Size(520, 537);
             _ctrlPersonCard.TabIndex = 2;
             // 
             // ctrlFindPerson
@@ -164,7 +164,7 @@
             Controls.Add(_notification);
             Controls.Add(_pnlTop);
             Name = "ctrlFindPerson";
-            Size = new Size(520, 822);
+            Size = new Size(520, 665);
             _pnlTop.ResumeLayout(false);
             _pnlTop.PerformLayout();
             ResumeLayout(false);
