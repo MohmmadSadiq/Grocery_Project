@@ -503,7 +503,7 @@ CREATE TABLE Transactions (
     TransactionID     INT IDENTITY(1,1) NOT NULL, -- Surrogate key for each financial transaction header
 	PaymentID         INT              NULL,      -- Optional FK to Payments(PaymentID) when generated from a payment
     TransactionDate   DATETIME         DEFAULT GETDATE(), -- When the transaction occurred
-    TransactionType   TINYINT          NOT NULL,  -- Business type (e.g., 1=Purchase, 2=Sale, 3=Adjustment)
+    TransactionType   TINYINT          NOT NULL,  -- Business type (e.g., 1=Sale, 2=Purchase, 3=Adjustment)
     TransactionStatus TINYINT          NOT NULL,  -- 0=Draft, 1=Posted, 2=Cancelled (extendable)
     TotalAmount       DECIMAL(18, 2)   NOT NULL DEFAULT 0, -- Document total; DECIMAL preferred over MONEY for precision
 	Nots              NVARCHAR (MAX)   NULL,      -- Free-form notes / internal comments

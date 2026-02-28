@@ -98,8 +98,8 @@ namespace RMS_DataAccess
                     command.Parameters.AddWithValue("@PaymentID", PaymentID);
                     command.Parameters.Add("@PaymentDate", System.Data.SqlDbType.DateTime).Value = (object?)PaymentDate ?? DBNull.Value;
                     command.Parameters.Add("@PaymentMethodID", System.Data.SqlDbType.Int).Value = (object?)PaymentMethodID ?? DBNull.Value;
-                    command.Parameters.Add("@PaymentAmount", System.Data.SqlDbType.VarChar).Value = (object?)PaymentAmount ?? DBNull.Value;
-                    command.Parameters.Add("@Notes", System.Data.SqlDbType.VarChar).Value = (object?)Notes ?? DBNull.Value;
+                    command.Parameters.Add("@PaymentAmount", System.Data.SqlDbType.Decimal).Value = (object?)PaymentAmount ?? DBNull.Value;
+                    command.Parameters.Add("@Notes", System.Data.SqlDbType.NVarChar).Value = (object?)Notes ?? DBNull.Value;
                     command.Parameters.Add("@UpdatedByUserID", System.Data.SqlDbType.Int).Value = (object?)UpdatedByUserID ?? DBNull.Value;
                     SqlParameter returnParameter = new SqlParameter() { Direction = ParameterDirection.ReturnValue };
                     command.Parameters.Add(returnParameter);

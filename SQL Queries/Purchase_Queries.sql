@@ -1,11 +1,12 @@
 USE [RMS];
 GO
 
-CREATE PROCEDURE spPurchase_AddNew
+ALTER PROCEDURE spPurchase_AddNew
     @TransactionID INT,
     @SupplierID INT,
     @InvoiceNumber NVARCHAR(50),
     @PurchasedByEmployeeID INT,
+	@InvoiceDocumentPath NVARCHAR(500) = NULL,
 	@NewBatches PurchaseProductBatchesType READONLY,
     @NewPurchaseID INT OUTPUT
 AS
@@ -15,18 +16,17 @@ BEGIN
 	
 	BEGIN TRANSACTION
 		BEGIN TRY
-		    -- ≈œŒ«· «·”Ã· «·—∆Ì”Ì ›Ì ÃœÊ· Purchases
 		    INSERT INTO Purchases (
-		        TransactionID, SupplierID, InvoiceNumber, PurchasedByEmployeeID
+		        TransactionID, SupplierID, InvoiceNumber, PurchasedByEmployeeID, InvoiceDocumentPath
 		    )
 		    VALUES (
-		        @TransactionID, @SupplierID, @InvoiceNumber, @PurchasedByEmployeeID
+		        @TransactionID, @SupplierID, @InvoiceNumber, @PurchasedByEmployeeID, @InvoiceDocumentPath
 		    );
 		
-		    -- «·Õ’Ê· ⁄·Ï «·‹ PurchaseID «·ÃœÌœ
+		    -- ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩ PurchaseID ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ
 		    SET @NewPurchaseID = SCOPE_IDENTITY();
 		
-		    -- ≈œŒ«· «·»« ‘«  «·„— »ÿ… »«·‘—«¡
+		    -- ÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ
 		    INSERT INTO PurchaseProductBatches
 		    (
 		        PurchaseID, ProductUnitID, TotalQuantity, UniteCostPrice,
@@ -35,27 +35,27 @@ BEGIN
 		    SELECT
 		        @NewPurchaseID, ProductUnitID, TotalQuantity, 
 		        UniteCostPrice, ProductionDate, ExpiryDate, BatchNumber
-		    FROM @NewBatches;  -- <-- Â‰« «” Œœ„‰« «·«”„ «·ÃœÌœ ··„ €Ì—
+		    FROM @NewBatches;  -- <-- ÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ
 		
-		    -- ≈‰Â«¡ «·⁄„·Ì… »‰Ã«Õ
+		    -- ÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩ
 		    COMMIT TRANSACTION;
 		END TRY
 		BEGIN CATCH
-		    -- ≈–« Õ’· Œÿ√° «· —«Ã⁄ ⁄‰ ﬂ· «· €ÌÌ—« 
+		    -- ÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩ ÔøΩÔøΩ√° ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩ ÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ
 		    ROLLBACK TRANSACTION;
 		
-		    -- —›⁄ «·Œÿ√ ··Œ«—Ã ·Ì „ «· ⁄«„· „⁄Â
+		    -- ÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩ
 		    THROW;
 		END CATCH;
 		
 END
 GO
 
-CREATE PROCEDURE spPurchase_GetAll AS
+ALTER PROCEDURE spPurchase_GetAll AS
 BEGIN
     SET NOCOUNT ON;
 
-	SELECT * FROM Purchase_View
+	SELECT * FROM PurchasesGrid_View
 
 END
 GO
@@ -72,7 +72,8 @@ BEGIN
         P.TransactionID,
         P.SupplierID,
         P.InvoiceNumber,
-        P.PurchasedByEmployeeID
+        P.PurchasedByEmployeeID,
+        P.InvoiceDocumentPath
     FROM Purchases P
     INNER JOIN Transactions T 
         ON T.TransactionID = P.TransactionID
@@ -96,12 +97,13 @@ GO
 
 GO
 
-CREATE PROCEDURE spPurchase_Update
+ALTER PROCEDURE spPurchase_Update
     @PurchaseID INT,
     @TransactionID INT,
     @SupplierID INT,
     @InvoiceNumber NVARCHAR(50),
-    @PurchasedByEmployeeID INT
+    @PurchasedByEmployeeID INT,
+    @InvoiceDocumentPath NVARCHAR(500) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -110,13 +112,14 @@ BEGIN
         TransactionID = @TransactionID,
         SupplierID = @SupplierID,
         InvoiceNumber = @InvoiceNumber,
-        PurchasedByEmployeeID = @PurchasedByEmployeeID
+        PurchasedByEmployeeID = @PurchasedByEmployeeID,
+        InvoiceDocumentPath = @InvoiceDocumentPath
     WHERE PurchaseID = @PurchaseID;
     IF @@ROWCOUNT > 0 RETURN 1 ELSE RETURN 0
 END
 GO
 
-CREATE PROCEDURE spPurchase_Delete
+ALTER PROCEDURE spPurchase_Delete
     @PurchaseID INT,
 	@UpdatedByUserID INT 
 AS 
@@ -140,7 +143,7 @@ GO
 ALTER VIEW Purchase_View
 AS
 SELECT        Transactions.TransactionID , Purchases.PurchaseID, Transactions.PaymentID, Transactions.TransactionDate, Transactions.TransactionType, Transactions.TransactionStatus, Transactions.TotalAmount, Transactions.Nots, Transactions.CreatedDate, 
-                         Transactions.CreatedByUserID, Transactions.UpdatedDate, Transactions.UpdatedByUserID, Purchases.SupplierID, Purchases.InvoiceNumber, Purchases.PurchasedByEmployeeID, IsDeleted
+                         Transactions.CreatedByUserID, Transactions.UpdatedDate, Transactions.UpdatedByUserID, Purchases.SupplierID, Purchases.InvoiceNumber, Purchases.PurchasedByEmployeeID, Purchases.InvoiceDocumentPath, IsDeleted
 FROM            Purchases INNER JOIN
                          Transactions ON Purchases.TransactionID = Transactions.TransactionID
 
@@ -150,7 +153,7 @@ SELECT * FROM Purchase_View
 select * from PurchaseProductBatches
 
 
-
+x
 CREATE TABLE [dbo].[PurchaseProductBatches](
 	[BatchID] [int] IDENTITY(1,1) NOT NULL,
 	[PurchaseID] [int] NOT NULL,
@@ -180,4 +183,146 @@ CREATE TYPE PurchaseProductBatchesType AS TABLE
 )
 
 
+ALTER TABLE Purchases
+ADD InvoiceDocumentPath NVARCHAR(500) NULL;
+select * from Purchases
 
+/*
+ALTER VIEW PurchasesGrid_View  as
+SELECT        Purchases.PurchaseID, Purchases.SupplierID, Transactions.TransactionID, Purchases.InvoiceNumber, Transactions.PaymentID, Transactions.TransactionDate, Transactions.TransactionStatus, Transactions.TotalAmount 
+                        , People.FullName as EmployeeName, Positions.PositionName ,(SELECT SUM(Amount) from PaymentAllocations where PaymentAllocations.TransactionID = Purchases.TransactionID) as PaidAmount, SupplierName, SupplierType
+FROM            Transactions INNER JOIN
+                         Purchases ON Transactions.TransactionID = Purchases.TransactionID
+						 LEFT JOIN Employees ON Purchases.PurchasedByEmployeeID = Employees.EmployeeID
+						 LEFT JOIN
+                         People ON Employees.PersonID = People.PersonID LEFT JOIN
+                         Positions ON Employees.PositionID = Positions.PositionID
+						 join Suppliers_View on Purchases.SupplierID = Suppliers_View.SupplierID
+
+
+ALTER PROCEDURE sp_SearchPurchasePages
+    @SearchText        NVARCHAR(100) = NULL,
+    @SearchBy          NVARCHAR(50)  = 'InvoiceNumber',  -- InvoiceNumber, PurchaseID, SupplierName, EmployeeName
+    @TransactionStatus TINYINT       = NULL,              -- 1=InProgress, 2=Cancelled, 3=Completed, NULL=All
+    @SupplierType      NVARCHAR(20)  = NULL,              -- 'Person', 'Company', NULL for all
+    @PageNumber        INT           = 1,
+    @PageSize          INT           = 20,
+    @SortBy            NVARCHAR(50)  = 'TransactionDate'  -- TransactionDate, InvoiceNumber, SupplierName, TotalAmount, PurchaseID, EmployeeName, PaidAmount
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+    SELECT 
+        PurchaseID,
+        InvoiceNumber,
+        SupplierName,
+        SupplierType,
+        TransactionDate,
+        TotalAmount,
+        PaidAmount,
+        TransactionStatus,
+        EmployeeName,
+        PositionName,
+        COUNT(*) OVER() AS TotalCount
+    FROM PurchasesGrid_View
+    WHERE 
+        (@TransactionStatus IS NULL OR TransactionStatus = @TransactionStatus)
+        AND (@SupplierType IS NULL OR SupplierType = @SupplierType)
+        AND (@SearchText IS NULL OR @SearchText = '' OR (
+            (@SearchBy = 'InvoiceNumber' AND InvoiceNumber LIKE '%' + @SearchText + '%')
+            OR (@SearchBy = 'PurchaseID'    AND CAST(PurchaseID AS NVARCHAR(20)) LIKE '%' + @SearchText + '%')
+            OR (@SearchBy = 'SupplierName'  AND SupplierName LIKE '%' + @SearchText + '%')
+            OR (@SearchBy = 'EmployeeName'  AND EmployeeName LIKE '%' + @SearchText + '%')
+        ))
+    ORDER BY 
+        CASE WHEN @SortBy = 'PurchaseID'      THEN PurchaseID END DESC,
+        CASE WHEN @SortBy = 'InvoiceNumber'    THEN InvoiceNumber END ASC,
+        CASE WHEN @SortBy = 'SupplierName'     THEN SupplierName END ASC,
+        CASE WHEN @SortBy = 'TotalAmount'      THEN TotalAmount END DESC,
+        CASE WHEN @SortBy = 'PaidAmount'       THEN PaidAmount END DESC,
+        CASE WHEN @SortBy = 'EmployeeName'     THEN EmployeeName END ASC,
+        CASE WHEN @SortBy = 'TransactionDate'  THEN TransactionDate END DESC,
+        TransactionDate DESC  -- Default secondary sort
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+END*/
+
+ALTER PROCEDURE sp_SearchPurchasePages
+    @SearchText        NVARCHAR(100) = NULL,
+    @SearchBy          NVARCHAR(50)  = 'InvoiceNumber',
+    @TransactionStatus TINYINT       = NULL,
+    @SupplierType      NVARCHAR(20)  = NULL,
+    @PageNumber        INT           = 1,
+    @PageSize          INT           = 20,
+    @SortBy            NVARCHAR(50)  = 'TransactionDate'
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET ARITHABORT ON;
+
+    -- ÿ≠ŸÑ Parameter Sniffing: ŸÜÿ≥ÿÆ ÿßŸÑŸÖÿπÿßŸÖŸÑÿßÿ™ ÿ•ŸÑŸâ ŸÖÿ™ÿ∫Ÿäÿ±ÿßÿ™ ŸÖÿ≠ŸÑŸäÿ©
+    DECLARE @LocalSearchText        NVARCHAR(100) = @SearchText;
+    DECLARE @LocalSearchBy          NVARCHAR(50)  = @SearchBy;
+    DECLARE @LocalTransactionStatus TINYINT       = @TransactionStatus;
+    DECLARE @LocalSupplierType      NVARCHAR(20)  = @SupplierType;
+    DECLARE @LocalPageNumber        INT           = @PageNumber;
+    DECLARE @LocalPageSize          INT           = @PageSize;
+    DECLARE @LocalSortBy            NVARCHAR(50)  = @SortBy;
+
+    DECLARE @Offset INT = (@LocalPageNumber - 1) * @LocalPageSize;
+
+    -- ÿ™ŸÜÿ∏ŸäŸÅ ÿßŸÑŸÜÿµ: ÿ™ÿ≠ŸàŸäŸÑ ÿßŸÑŸÜÿµ ÿßŸÑŸÅÿßÿ±ÿ∫ ÿ•ŸÑŸâ NULL ŸÑÿ™ÿ®ÿ≥Ÿäÿ∑ ÿßŸÑÿ¥ÿ±ÿ∑
+    IF @LocalSearchText = '' SET @LocalSearchText = NULL;
+
+    -- ÿ≠ÿ≥ÿßÿ® TotalCount ÿ®ÿ¥ŸÉŸÑ ŸÖŸÜŸÅÿµŸÑ ŸÑÿ™ÿ≠ÿ≥ŸäŸÜ ÿßŸÑÿ£ÿØÿßÿ°
+    DECLARE @TotalCount INT;
+
+    SELECT @TotalCount = COUNT(*)
+    FROM PurchasesGrid_View
+    WHERE 
+        (@LocalTransactionStatus IS NULL OR TransactionStatus = @LocalTransactionStatus)
+        AND (@LocalSupplierType IS NULL OR SupplierType = @LocalSupplierType)
+        AND (@LocalSearchText IS NULL OR (
+            (@LocalSearchBy = 'InvoiceNumber' AND InvoiceNumber LIKE '%' + @LocalSearchText + '%')
+            OR (@LocalSearchBy = 'PurchaseID'    AND CAST(PurchaseID AS NVARCHAR(20)) LIKE '%' + @LocalSearchText + '%')
+            OR (@LocalSearchBy = 'SupplierName'  AND SupplierName LIKE '%' + @LocalSearchText + '%')
+            OR (@LocalSearchBy = 'EmployeeName'  AND EmployeeName LIKE '%' + @LocalSearchText + '%')
+        ))
+    OPTION (RECOMPILE);
+
+    -- ÿßŸÑÿßÿ≥ÿ™ÿπŸÑÿßŸÖ ÿßŸÑÿ±ÿ¶Ÿäÿ≥Ÿä ÿ®ÿØŸàŸÜ COUNT(*) OVER() ÿßŸÑŸÖŸÉŸÑŸÅ
+    SELECT 
+        PurchaseID,
+        InvoiceNumber,
+        SupplierName,
+        SupplierType,
+        TransactionDate,
+        TotalAmount,
+        PaidAmount,
+        TransactionStatus,
+        EmployeeName,
+        PositionName,
+        @TotalCount AS TotalCount
+    FROM PurchasesGrid_View
+    WHERE 
+        (@LocalTransactionStatus IS NULL OR TransactionStatus = @LocalTransactionStatus)
+        AND (@LocalSupplierType IS NULL OR SupplierType = @LocalSupplierType)
+        AND (@LocalSearchText IS NULL OR (
+            (@LocalSearchBy = 'InvoiceNumber' AND InvoiceNumber LIKE '%' + @LocalSearchText + '%')
+            OR (@LocalSearchBy = 'PurchaseID'    AND CAST(PurchaseID AS NVARCHAR(20)) LIKE '%' + @LocalSearchText + '%')
+            OR (@LocalSearchBy = 'SupplierName'  AND SupplierName LIKE '%' + @LocalSearchText + '%')
+            OR (@LocalSearchBy = 'EmployeeName'  AND EmployeeName LIKE '%' + @LocalSearchText + '%')
+        ))
+    ORDER BY 
+        CASE WHEN @LocalSortBy = 'PurchaseID'      THEN PurchaseID END DESC,
+        CASE WHEN @LocalSortBy = 'InvoiceNumber'    THEN InvoiceNumber END ASC,
+        CASE WHEN @LocalSortBy = 'SupplierName'     THEN SupplierName END ASC,
+        CASE WHEN @LocalSortBy = 'TotalAmount'      THEN TotalAmount END DESC,
+        CASE WHEN @LocalSortBy = 'PaidAmount'       THEN PaidAmount END DESC,
+        CASE WHEN @LocalSortBy = 'EmployeeName'     THEN EmployeeName END ASC,
+        CASE WHEN @LocalSortBy = 'TransactionDate'  THEN TransactionDate END DESC,
+        TransactionDate DESC
+    OFFSET @Offset ROWS FETCH NEXT @LocalPageSize ROWS ONLY
+    OPTION (RECOMPILE);
+END

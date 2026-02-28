@@ -202,6 +202,33 @@ namespace RMS_DataAccess
             public string SortBy { get; set; } = "Name";
         }
 
+        public static DataTable GetProductWithUnitsByBarcode(string barcode)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("sp_GetProductWithUnitsByBarcode", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@Barcode", SqlDbType.NVarChar, 100).Value = barcode;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
+                }
+            }
+            return dt;
+        }
+
         public static DataTable SearchProductsPages(ProductSearchCriteria criteria)
         {
             DataTable dt = new DataTable();

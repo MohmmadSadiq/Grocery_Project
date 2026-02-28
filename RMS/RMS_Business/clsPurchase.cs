@@ -9,6 +9,7 @@ namespace RMS_Business
         public int? SupplierID { get; set; }
         public string? InvoiceNumber { get; set; }
         public int? PurchasedByEmployeeID { get; set; }
+        public string? InvoiceDocumentPath { get; set; } // مسار ملف الفاتورة (PDF أو صورة)
         public List<clsBatch>? PurchaseBatches { get; set; } // the list of batches associated with this purchase
         public clsPurchase()
         {
@@ -16,6 +17,7 @@ namespace RMS_Business
             SupplierID = null;
             InvoiceNumber = null;
             PurchasedByEmployeeID = null;
+            InvoiceDocumentPath = null;
             // Mode, TransactionID now inherited from clsTransaction
         }
 
@@ -32,11 +34,11 @@ namespace RMS_Business
             switch (Mode)
             {
                 case enMode.AddNew:
-                    var newID = clsPurchaseData.AddNewPurchase(TransactionID, SupplierID, InvoiceNumber, PurchasedByEmployeeID, detailsTable);
+                    var newID = clsPurchaseData.AddNewPurchase(TransactionID, SupplierID, InvoiceNumber, PurchasedByEmployeeID, InvoiceDocumentPath, detailsTable);
                     if (newID != -1) { PurchaseID = newID; Mode = enMode.Update; return true; }
                     else return false;
                 case enMode.Update:
-                    return clsPurchaseData.UpdatePurchase(PurchaseID, TransactionID, SupplierID, InvoiceNumber, PurchasedByEmployeeID);
+                    return clsPurchaseData.UpdatePurchase(PurchaseID, TransactionID, SupplierID, InvoiceNumber, PurchasedByEmployeeID, InvoiceDocumentPath);
             }
             return false;
         }
@@ -46,8 +48,9 @@ namespace RMS_Business
             int? SupplierID = null;
             string? InvoiceNumber = null;
             int? PurchasedByEmployeeID = null;
+            string? InvoiceDocumentPath = null;
             DataTable detailsTable = new DataTable();
-            bool found = clsPurchaseData.GetPurchaseByID(PurchaseID, ref TransactionID, ref SupplierID, ref InvoiceNumber, ref PurchasedByEmployeeID, ref detailsTable);
+            bool found = clsPurchaseData.GetPurchaseByID(PurchaseID, ref TransactionID, ref SupplierID, ref InvoiceNumber, ref PurchasedByEmployeeID, ref InvoiceDocumentPath, ref detailsTable);
             clsTransaction? transaction = clsTransaction.Find(TransactionID);
             if (found && transaction != null)
             {
@@ -71,6 +74,7 @@ namespace RMS_Business
                 purchase.SupplierID = SupplierID;
                 purchase.InvoiceNumber = InvoiceNumber;
                 purchase.PurchasedByEmployeeID = PurchasedByEmployeeID;
+                purchase.InvoiceDocumentPath = InvoiceDocumentPath;
                 purchase.PurchaseBatches = purchase.DataTableToBatchListFromDB(detailsTable);
             
                 return purchase;
@@ -84,6 +88,44 @@ namespace RMS_Business
         public static DataTable GetAllPurchase()
         {
             return clsPurchaseData.GetAllPurchase();
+        }
+
+        // ── Search / Pagination ───────────────────────────────────────────────────
+
+        public static DataTable SearchPurchasePages(PurchaseSearchCriteria criteria)
+        {
+            return clsPurchaseData.SearchPurchasePages(criteria.ToDataAccessCriteria());
+        }
+
+        public class PurchaseSearchCriteria
+        {
+            public string? SearchText { get; set; }
+            public string SearchBy { get; set; } = "InvoiceNumber"; // InvoiceNumber, PurchaseID, SupplierName, EmployeeName
+            public byte? TransactionStatus { get; set; }            // 1=InProgress, 2=Cancelled, 3=Completed, null=All
+            public string? SupplierType { get; set; }               // Person, Company, null for all
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+            public string SortBy { get; set; } = "TransactionDate";
+
+            public clsPurchaseData.PurchaseSearchCriteria ToDataAccessCriteria()
+            {
+                return new clsPurchaseData.PurchaseSearchCriteria
+                {
+                    SearchText        = this.SearchText,
+                    SearchBy          = this.SearchBy,
+                    TransactionStatus = this.TransactionStatus,
+                    SupplierType      = this.SupplierType,
+                    PageNumber        = this.PageNumber,
+                    PageSize          = this.PageSize,
+                    SortBy            = this.SortBy
+                };
+            }
+
+            public bool IsDefault()
+            {
+                return string.IsNullOrEmpty(SearchText) && !TransactionStatus.HasValue
+                    && string.IsNullOrEmpty(SupplierType) && PageNumber == 1 && PageSize == 20;
+            }
         }
 
         private List<clsBatch> DataTableToBatchList(DataTable table)

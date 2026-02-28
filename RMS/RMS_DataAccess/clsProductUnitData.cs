@@ -201,5 +201,75 @@ namespace RMS_DataAccess
             }
             return dt;
         }
+    
+
+        public static bool GetProductUnitByBarcode(string Barcode, ref int ProductUnitID, ref int ProductID, ref int UnitID, ref string? Description, ref decimal ConversionFactor, ref decimal? SalePrice, ref bool IsActive, ref DateTime CreatedDate, ref int? CreatedByUserID, ref DateTime UpdatedDate, ref int? UpdatedByUserID)
+        {
+            bool isFound = false;
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spProductUnit_GetByBarcode", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@Barcode", Barcode);
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                isFound = true;
+                                ProductUnitID = (int)reader["ProductUnitID"];
+                                ProductID = (int)reader["ProductID"];
+                                UnitID = (int)reader["UnitID"];
+                                Description = reader["Description"] != DBNull.Value ? (string?)reader["Description"] : null;
+                                ConversionFactor = (decimal)reader["ConversionFactor"];
+                                SalePrice = reader["SalePrice"] != DBNull.Value ? (decimal?)reader["SalePrice"] : null;
+                                IsActive = (bool)reader["IsActive"];
+                                CreatedDate = (DateTime)reader["CreatedDate"];
+                                CreatedByUserID = reader["CreatedByUserID"] != DBNull.Value ? (int?)reader["CreatedByUserID"] : null;
+                                UpdatedDate = (DateTime)reader["UpdatedDate"];
+                                UpdatedByUserID = reader["UpdatedByUserID"] != DBNull.Value ? (int?)reader["UpdatedByUserID"] : null;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        isFound = false;
+                    }
+                }
+            }
+            return isFound;
+        }
+
+        public static DataTable SearchProductUnitsByBarcode(string Barcode, int? PageNumber = null, int? PageSize = null)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spProductUnit_SearchByBarcode", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@Barcode", Barcode);
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value = (object?)PageNumber ?? DBNull.Value;
+                    command.Parameters.Add("@PageSize", SqlDbType.Int).Value = (object?)PageSize ?? DBNull.Value;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
+                }
+            }
+            return dt;
+        }
     }
 }

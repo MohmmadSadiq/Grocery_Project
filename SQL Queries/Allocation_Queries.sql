@@ -104,3 +104,33 @@ BEGIN
 END
 GO
 
+USE [RMS];
+GO
+
+CREATE OR ALTER PROCEDURE spAllocation_GetByTransactionID
+    @TransactionID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        PA.AllocationID,
+        PA.PaymentID,
+        PA.TransactionID,
+        PA.Amount,
+        PA.CreatedDate,
+        PA.CreatedByUserID,
+        P.PaymentDate,
+        P.PaymentMethodID,
+        PM.MethodName,
+        P.PaymentAmount,
+        P.Notes AS PaymentNotes
+    FROM PaymentAllocations PA
+    INNER JOIN Payments P ON PA.PaymentID = P.PaymentID
+    LEFT JOIN PaymentMethods PM ON P.PaymentMethodID = PM.PaymentMethodID
+    WHERE PA.TransactionID = @TransactionID
+    ORDER BY P.PaymentDate ASC;
+END
+GO
+
+

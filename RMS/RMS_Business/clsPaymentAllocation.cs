@@ -56,5 +56,9 @@ namespace RMS_Business
         {
             return clsPaymentAllocationData.GetAllAllocation();
         }
+        public static DataTable GetAllocationsByTransactionID(int TransactionID)
+        {
+            return clsPaymentAllocationData.GetAllocationsByTransactionID(TransactionID);
+        }
     }
 }

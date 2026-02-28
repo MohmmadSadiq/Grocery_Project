@@ -6,7 +6,7 @@ using RMS_UI.Utilities;
 
 namespace RMS_UI.Suppliers_Purchase
 {
-    public partial class ctrlAddEditSupplier : UserControl
+    public partial class ctrlAddEditSupplier: UserControl
     {
         // ── Events ────────────────────────────────────────────────────────────────
         public event EventHandler<clsSupplier>? SupplierSaved;

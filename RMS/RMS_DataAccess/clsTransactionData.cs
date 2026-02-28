@@ -56,7 +56,7 @@ namespace RMS_DataAccess
                     command.Parameters.Add("@TransactionDate", System.Data.SqlDbType.DateTime).Value = (object?)TransactionDate ?? DBNull.Value;
                     command.Parameters.Add("@TransactionType", System.Data.SqlDbType.TinyInt).Value = (object?)TransactionType ?? DBNull.Value;
                     command.Parameters.Add("@TransactionStatus", System.Data.SqlDbType.TinyInt).Value = (object?)TransactionStatus ?? DBNull.Value;
-                    command.Parameters.Add("@TotalAmount", System.Data.SqlDbType.VarChar).Value = (object?)TotalAmount ?? DBNull.Value;
+                    command.Parameters.Add("@TotalAmount", System.Data.SqlDbType.Decimal).Value = (object?)TotalAmount ?? DBNull.Value;
                     command.Parameters.Add("@Nots", System.Data.SqlDbType.NVarChar).Value = (object?)Nots ?? DBNull.Value;
                     command.Parameters.Add("@CreatedByUserID", System.Data.SqlDbType.Int).Value = (object?)CreatedByUserID ?? DBNull.Value;
                     SqlParameter outputIdParam = new SqlParameter("@NewTransactionID", SqlDbType.Int) { Direction = ParameterDirection.Output };
@@ -89,7 +89,7 @@ namespace RMS_DataAccess
                     command.Parameters.Add("@TransactionDate", System.Data.SqlDbType.DateTime).Value = (object?)TransactionDate ?? DBNull.Value;
                     command.Parameters.Add("@TransactionType", System.Data.SqlDbType.TinyInt).Value = (object?)TransactionType ?? DBNull.Value;
                     command.Parameters.Add("@TransactionStatus", System.Data.SqlDbType.TinyInt).Value = (object?)TransactionStatus ?? DBNull.Value;
-                    command.Parameters.Add("@TotalAmount", System.Data.SqlDbType.VarChar).Value = (object?)TotalAmount ?? DBNull.Value;
+                    command.Parameters.Add("@TotalAmount", System.Data.SqlDbType.Decimal).Value = (object?)TotalAmount ?? DBNull.Value;
                     command.Parameters.Add("@Nots", System.Data.SqlDbType.NVarChar).Value = (object?)Nots ?? DBNull.Value;
                     command.Parameters.Add("@UpdatedByUserID", System.Data.SqlDbType.Int).Value = (object?)UpdatedByUserID ?? DBNull.Value;
                     SqlParameter returnParameter = new SqlParameter() { Direction = ParameterDirection.ReturnValue };

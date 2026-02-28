@@ -557,6 +557,30 @@ namespace RMS_UI.Controls
         }
         #endregion
 
+        #region Context Menu
+        /// <summary>
+        /// Adds a new item to the DataGridView's context menu.
+        /// Existing items are preserved.
+        /// </summary>
+        public void AddContextMenuItem(string text, EventHandler onClick, bool isDelete = false)
+        {
+            _dataGrid.AddContextMenuItem(text, onClick, isDelete);
+        }
+
+        /// <summary>
+        /// Adds a separator to the DataGridView's context menu.
+        /// </summary>
+        public void AddContextMenuSeparator()
+        {
+            _dataGrid.AddContextMenuSeparator();
+        }
+
+        /// <summary>
+        /// Gets the underlying DataGridView for advanced scenarios.
+        /// </summary>
+        public DataGridView DataGridView => _dataGrid.DataGridView;
+        #endregion
+
         #region Theme
         public void ApplyTheme()
         {

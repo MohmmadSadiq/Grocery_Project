@@ -6,7 +6,7 @@ namespace RMS_DataAccess
 {
     public class clsPurchaseData
     {
-        public static bool GetPurchaseByID(int PurchaseID, ref int TransactionID, ref int? SupplierID, ref string? InvoiceNumber, ref int? PurchasedByEmployeeID, ref DataTable detailsTable)
+        public static bool GetPurchaseByID(int PurchaseID, ref int TransactionID, ref int? SupplierID, ref string? InvoiceNumber, ref int? PurchasedByEmployeeID, ref string? InvoiceDocumentPath, ref DataTable detailsTable)
         {
             bool isFound = false;
             
@@ -28,6 +28,7 @@ namespace RMS_DataAccess
                                 SupplierID = reader["SupplierID"] != DBNull.Value ? (int?)reader["SupplierID"] : null;
                                 InvoiceNumber = reader["InvoiceNumber"] != DBNull.Value ? (string?)reader["InvoiceNumber"] : null;
                                 PurchasedByEmployeeID = reader["PurchasedByEmployeeID"] != DBNull.Value ? (int?)reader["PurchasedByEmployeeID"] : null;
+                                InvoiceDocumentPath = reader["InvoiceDocumentPath"] != DBNull.Value ? (string?)reader["InvoiceDocumentPath"] : null;
                             }
                             reader.NextResult();
 
@@ -73,7 +74,7 @@ namespace RMS_DataAccess
         //     }
         //     return newID;
         // }
-        public static int AddNewPurchase(int TransactionID, int? SupplierID, string? InvoiceNumber, int? PurchasedByEmployeeID, DataTable? detailsTable)
+        public static int AddNewPurchase(int TransactionID, int? SupplierID, string? InvoiceNumber, int? PurchasedByEmployeeID, string? InvoiceDocumentPath, DataTable? detailsTable)
         {
             int newID = -1;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -85,6 +86,7 @@ namespace RMS_DataAccess
                     command.Parameters.Add("@SupplierID", System.Data.SqlDbType.Int).Value = (object?)SupplierID ?? DBNull.Value;
                     command.Parameters.Add("@InvoiceNumber", System.Data.SqlDbType.VarChar).Value = (object?)InvoiceNumber ?? DBNull.Value;
                     command.Parameters.Add("@PurchasedByEmployeeID", System.Data.SqlDbType.Int).Value = (object?)PurchasedByEmployeeID ?? DBNull.Value;
+                    command.Parameters.Add("@InvoiceDocumentPath", System.Data.SqlDbType.NVarChar, 500).Value = (object?)InvoiceDocumentPath ?? DBNull.Value;
                     SqlParameter tvpParam =command.Parameters.Add("@NewBatches", SqlDbType.Structured);
                        tvpParam.TypeName = "dbo.PurchaseProductBatchesType";
                        tvpParam.Value = detailsTable ?? new DataTable(); // هنا يكون DataTable أو List<PurchaseBatch> محوّل إلى DataTable
@@ -105,7 +107,7 @@ namespace RMS_DataAccess
             }
             return newID;
         }
-        public static bool UpdatePurchase(int PurchaseID, int TransactionID, int? SupplierID, string? InvoiceNumber, int? PurchasedByEmployeeID)
+        public static bool UpdatePurchase(int PurchaseID, int TransactionID, int? SupplierID, string? InvoiceNumber, int? PurchasedByEmployeeID, string? InvoiceDocumentPath)
         {
             int result = 0;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -118,6 +120,7 @@ namespace RMS_DataAccess
                     command.Parameters.Add("@SupplierID", System.Data.SqlDbType.Int).Value = (object?)SupplierID ?? DBNull.Value;
                     command.Parameters.Add("@InvoiceNumber", System.Data.SqlDbType.VarChar).Value = (object?)InvoiceNumber ?? DBNull.Value;
                     command.Parameters.Add("@PurchasedByEmployeeID", System.Data.SqlDbType.Int).Value = (object?)PurchasedByEmployeeID ?? DBNull.Value;
+                    command.Parameters.Add("@InvoiceDocumentPath", System.Data.SqlDbType.NVarChar, 500).Value = (object?)InvoiceDocumentPath ?? DBNull.Value;
                     SqlParameter returnParameter = new SqlParameter() { Direction = ParameterDirection.ReturnValue };
                     command.Parameters.Add(returnParameter);
                     try
@@ -168,6 +171,55 @@ namespace RMS_DataAccess
                 using (SqlCommand command = new SqlCommand("spPurchase_GetAll", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
+                }
+            }
+            return dt;
+        }
+
+        // ── Search / Pagination ───────────────────────────────────────────────────
+
+        public class PurchaseSearchCriteria
+        {
+            public string? SearchText { get; set; }
+            public string SearchBy { get; set; } = "InvoiceNumber"; // InvoiceNumber, PurchaseID, SupplierName, EmployeeName
+            public byte? TransactionStatus { get; set; }            // 1=InProgress, 2=Cancelled, 3=Completed, null=All
+            public string? SupplierType { get; set; }               // Person, Company, null for all
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+            public string SortBy { get; set; } = "TransactionDate";
+        }
+
+        public static DataTable SearchPurchasePages(PurchaseSearchCriteria criteria)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("sp_SearchPurchasePages", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar, 100).Value =
+                        string.IsNullOrWhiteSpace(criteria.SearchText) ? DBNull.Value : criteria.SearchText;
+                    command.Parameters.Add("@SearchBy", SqlDbType.NVarChar, 50).Value = criteria.SearchBy;
+                    command.Parameters.Add("@TransactionStatus", SqlDbType.TinyInt).Value =
+                        criteria.TransactionStatus.HasValue ? criteria.TransactionStatus.Value : DBNull.Value;
+                    command.Parameters.Add("@SupplierType", SqlDbType.NVarChar, 20).Value =
+                        (object?)criteria.SupplierType ?? DBNull.Value;
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value = criteria.PageNumber;
+                    command.Parameters.Add("@PageSize", SqlDbType.Int).Value = criteria.PageSize;
+                    command.Parameters.Add("@SortBy", SqlDbType.NVarChar, 50).Value = criteria.SortBy;
                     try
                     {
                         connection.Open();

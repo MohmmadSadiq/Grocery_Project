@@ -31,6 +31,7 @@
             tabControl1 = new TabControl();
             SuppliersTab = new TabPage();
             tabPage2 = new TabPage();
+            _tabNewPurchase = new TabPage();
             tabControl1.SuspendLayout();
             SuspendLayout();
             // 
@@ -38,6 +39,7 @@
             // 
             tabControl1.Controls.Add(SuppliersTab);
             tabControl1.Controls.Add(tabPage2);
+            tabControl1.Controls.Add(_tabNewPurchase);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Font = new Font("Segoe UI", 18F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tabControl1.Location = new Point(0, 0);
@@ -66,6 +68,16 @@
             tabPage2.Text = "📋📦Purchases";
             tabPage2.UseVisualStyleBackColor = true;
             // 
+            // _tabNewPurchase
+            // 
+            _tabNewPurchase.Location = new Point(4, 24);
+            _tabNewPurchase.Name = "_tabNewPurchase";
+            _tabNewPurchase.Padding = new Padding(3);
+            _tabNewPurchase.Size = new Size(192, 72);
+            _tabNewPurchase.TabIndex = 2;
+            _tabNewPurchase.Text = "➕ New Purchase";
+            _tabNewPurchase.UseVisualStyleBackColor = true;
+            // 
             // Suppliers_PurchasePage
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -82,5 +94,6 @@
         private TabControl tabControl1;
         private TabPage SuppliersTab;
         private TabPage tabPage2;
+        private TabPage _tabNewPurchase;
     }
 }

@@ -127,3 +127,47 @@ BEGIN
 END
 GO
 
+ALTER PROCEDURE spProductUnit_GetByBarcode
+    @Barcode NVARCHAR (100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT ProductUnitID, ProductID, UnitID, Description, ConversionFactor, SalePrice, Barcode, IsActive, CreatedDate, CreatedByUserID, UpdatedDate, UpdatedByUserID FROM ProductUnits WHERE Barcode = @Barcode AND IsDeleted = 0;
+END
+
+GO 
+
+ALTER PROCEDURE spProductUnit_SearchByBarcode
+    @Barcode NVARCHAR(100),
+    @PageNumber INT = NULL,
+    @PageSize INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @PageNumber IS NULL OR @PageSize IS NULL
+    BEGIN
+        -- »œÊ‰ Pagination - Ì—Ã⁄ ﬂ· «·‰ «∆Ã
+        SELECT ProductUnitID, ProductID, UnitID, Description, ConversionFactor, 
+               SalePrice, Barcode, IsActive, CreatedDate, CreatedByUserID, 
+               UpdatedDate, UpdatedByUserID 
+        FROM ProductUnits 
+        WHERE Barcode LIKE @Barcode + '%' AND IsDeleted = 0
+        ORDER BY ProductUnitID;
+    END
+    ELSE
+    BEGIN
+        -- „⁄ Pagination
+        SELECT ProductUnitID, ProductID, UnitID, Description, ConversionFactor, 
+               SalePrice, Barcode, IsActive, CreatedDate, CreatedByUserID, 
+               UpdatedDate, UpdatedByUserID 
+        FROM ProductUnits 
+        WHERE Barcode LIKE @Barcode + '%' AND IsDeleted = 0
+        ORDER BY ProductUnitID
+        OFFSET (@PageNumber - 1) * @PageSize ROWS
+        FETCH NEXT @PageSize ROWS ONLY;
+    END
+END
+go
+

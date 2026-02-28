@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using RMS_UI.Suppliers_Purchase;
 using RMS_UI.Utilities;
 
 namespace RMS_UI.Controls
@@ -17,6 +18,8 @@ namespace RMS_UI.Controls
         {
             InitializeComponent();
             LoadSuppliersTab();
+            _LoadPurchasesTab();
+            _LoadNewPurchaseTab();
             ApplyTheme();
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
         }
@@ -26,6 +29,24 @@ namespace RMS_UI.Controls
             var suppliersPage = new SuppliersPage();
             suppliersPage.Dock = DockStyle.Fill;
             SuppliersTab.Controls.Add(suppliersPage);
+        }
+
+        private void _LoadPurchasesTab()
+        {
+            var purchasesPage = new PurchasesPage();
+            purchasesPage.Dock = DockStyle.Fill;
+            tabPage2.Controls.Add(purchasesPage);
+        }
+
+        private void _LoadNewPurchaseTab()
+        {
+            var ctrl = new ctrlAddEditPurchase();
+            ctrl.PurchaseSaved += (s, purchase) =>
+            {
+                ctrl.BackToAddNewMode();
+            };
+            ctrl.Dock = DockStyle.Fill;
+            _tabNewPurchase.Controls.Add(ctrl);
         }
 
         private void ApplyTheme()

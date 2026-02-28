@@ -91,6 +91,18 @@ namespace RMS_Business
             return clsProductData.SearchProductsPages(searchCriteria.ToDataAccessCriteria());
         }
 
+        /// <summary>
+        /// Searches for a product by barcode and returns the product info with ALL its units.
+        /// Returns a DataTable with columns: ProductID, ProductName, CategoryID, CategoryName,
+        /// BrandID, BrandName, ProductDescription, ProductIsActive, ReorderLevel, ImagePath,
+        /// ProductUnitID, UnitID, UnitName, UnitDescription, ConversionFactor, SalePrice, Barcode, UnitIsActive.
+        /// Each row represents one unit of the matched product.
+        /// </summary>
+        public static DataTable FindByBarcode(string barcode)
+        {
+            return clsProductData.GetProductWithUnitsByBarcode(barcode);
+        }
+
 
         /// <summary>
         /// Creates a new Product instance for adding a new product.

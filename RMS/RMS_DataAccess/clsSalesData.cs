@@ -4,17 +4,18 @@ using Microsoft.Data.SqlClient;
 
 namespace RMS_DataAccess
 {
-    public class clsPaymentAllocationData
+    public class clsSalesData
     {
-        public static bool GetAllocationByID(int AllocationID, ref int PaymentID, ref int TransactionID, ref decimal Amount, ref DateTime CreatedDate, ref int? CreatedByUserID)
+        public static bool GetSaleByID(int SaleID, ref int TransactionID, ref int? CustomerID, ref DataTable detailsTable)
         {
             bool isFound = false;
+
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand command = new SqlCommand("spAllocation_GetByID", connection))
+                using (SqlCommand command = new SqlCommand("spSales_GetByID", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@AllocationID", AllocationID);
+                    command.Parameters.AddWithValue("@SaleID", SaleID);
                     try
                     {
                         connection.Open();
@@ -23,12 +24,14 @@ namespace RMS_DataAccess
                             if (reader.Read())
                             {
                                 isFound = true;
-                                PaymentID = (int)reader["PaymentID"];
                                 TransactionID = (int)reader["TransactionID"];
-                                Amount = (decimal)reader["Amount"];
-                                CreatedDate = (DateTime)reader["CreatedDate"];
-                                CreatedByUserID = reader["CreatedByUserID"] != DBNull.Value ? (int?)reader["CreatedByUserID"] : null;
+                                CustomerID = reader["CustomerID"] != DBNull.Value ? (int?)reader["CustomerID"] : null;
                             }
+                            reader.NextResult();
+
+                            // Load the second result set (ProductSales details)
+                            if (reader.HasRows)
+                                detailsTable.Load(reader);
                         }
                     }
                     catch (Exception)
@@ -39,20 +42,25 @@ namespace RMS_DataAccess
             }
             return isFound;
         }
-        public static int AddNewAllocation(int PaymentID, int TransactionID, decimal Amount, int? CreatedByUserID)
+
+        public static int AddNewSale(int TransactionID, int? CustomerID, DataTable? detailsTable)
         {
             int newID = -1;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand command = new SqlCommand("spAllocation_AddNew", connection))
+                using (SqlCommand command = new SqlCommand("spSales_AddNew", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@PaymentID", System.Data.SqlDbType.Int).Value = (object?)PaymentID ?? DBNull.Value;
-                    command.Parameters.Add("@TransactionID", System.Data.SqlDbType.Int).Value = (object?)TransactionID ?? DBNull.Value;
-                    command.Parameters.Add("@Amount", System.Data.SqlDbType.Decimal).Value = (object?)Amount ?? DBNull.Value;
-                    command.Parameters.Add("@CreatedByUserID", System.Data.SqlDbType.Int).Value = (object?)CreatedByUserID ?? DBNull.Value;
-                    SqlParameter outputIdParam = new SqlParameter("@NewAllocationID", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                    command.Parameters.Add("@TransactionID", SqlDbType.Int).Value = (object?)TransactionID ?? DBNull.Value;
+                    command.Parameters.Add("@CustomerID", SqlDbType.Int).Value = (object?)CustomerID ?? DBNull.Value;
+
+                    SqlParameter tvpParam = command.Parameters.Add("@SaleItems", SqlDbType.Structured);
+                    tvpParam.TypeName = "dbo.ProductSalesType";
+                    tvpParam.Value = detailsTable ?? new DataTable();
+
+                    SqlParameter outputIdParam = new SqlParameter("@NewSaleID", SqlDbType.Int) { Direction = ParameterDirection.Output };
                     command.Parameters.Add(outputIdParam);
+
                     try
                     {
                         connection.Open();
@@ -68,20 +76,22 @@ namespace RMS_DataAccess
             }
             return newID;
         }
-        public static bool UpdateAllocation(int AllocationID, int PaymentID, int TransactionID, decimal Amount)
+
+        public static bool UpdateSale(int SaleID, int TransactionID, int? CustomerID)
         {
             int result = 0;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand command = new SqlCommand("spAllocation_Update", connection))
+                using (SqlCommand command = new SqlCommand("spSales_Update", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@AllocationID", AllocationID);
-                    command.Parameters.Add("@PaymentID", System.Data.SqlDbType.Int).Value = (object?)PaymentID ?? DBNull.Value;
-                    command.Parameters.Add("@TransactionID", System.Data.SqlDbType.Int).Value = (object?)TransactionID ?? DBNull.Value;
-                    command.Parameters.Add("@Amount", System.Data.SqlDbType.Decimal).Value = (object?)Amount ?? DBNull.Value;
+                    command.Parameters.AddWithValue("@SaleID", SaleID);
+                    command.Parameters.Add("@TransactionID", SqlDbType.Int).Value = (object?)TransactionID ?? DBNull.Value;
+                    command.Parameters.Add("@CustomerID", SqlDbType.Int).Value = (object?)CustomerID ?? DBNull.Value;
+
                     SqlParameter returnParameter = new SqlParameter() { Direction = ParameterDirection.ReturnValue };
                     command.Parameters.Add(returnParameter);
+
                     try
                     {
                         connection.Open();
@@ -96,17 +106,21 @@ namespace RMS_DataAccess
             }
             return result == 1;
         }
-        public static bool DeleteAllocation(int AllocationID )
+
+        public static bool DeleteSale(int SaleID, int? UpdatedByUserID = null)
         {
             int result = 0;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand command = new SqlCommand("spAllocation_Delete", connection))
+                using (SqlCommand command = new SqlCommand("spSales_Delete", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@AllocationID", AllocationID);
+                    command.Parameters.AddWithValue("@SaleID", SaleID);
+                    command.Parameters.AddWithValue("@UpdatedByUserID", (object?)UpdatedByUserID ?? DBNull.Value);
+
                     SqlParameter returnParameter = new SqlParameter() { Direction = ParameterDirection.ReturnValue };
                     command.Parameters.Add(returnParameter);
+
                     try
                     {
                         connection.Open();
@@ -121,15 +135,15 @@ namespace RMS_DataAccess
             }
             return result == 1;
         }
-        public static DataTable GetAllocationsByTransactionID(int TransactionID)
+
+        public static DataTable GetAllSales()
         {
             DataTable dt = new DataTable();
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand command = new SqlCommand("spAllocation_GetByTransactionID", connection))
+                using (SqlCommand command = new SqlCommand("spSales_GetAll", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@TransactionID", TransactionID);
                     try
                     {
                         connection.Open();
@@ -147,14 +161,39 @@ namespace RMS_DataAccess
             }
             return dt;
         }
-        public static DataTable GetAllAllocation()
+
+        // ── Search / Pagination ───────────────────────────────────────────────────
+
+        public class SalesSearchCriteria
+        {
+            public string? SearchText { get; set; }
+            public string SearchBy { get; set; } = "SaleID";        // SaleID, CustomerName
+            public byte? TransactionStatus { get; set; }            // 1=InProgress, 2=Cancelled, 3=Completed, null=All
+            public string? CustomerType { get; set; }               // Person, Company, null for all
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+            public string SortBy { get; set; } = "TransactionDate";
+        }
+
+        public static DataTable SearchSalesPages(SalesSearchCriteria criteria)
         {
             DataTable dt = new DataTable();
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand command = new SqlCommand("spAllocation_GetAll", connection))
+                using (SqlCommand command = new SqlCommand("sp_SearchSalesPages", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar, 100).Value =
+                        string.IsNullOrWhiteSpace(criteria.SearchText) ? DBNull.Value : criteria.SearchText;
+                    command.Parameters.Add("@SearchBy", SqlDbType.NVarChar, 50).Value = criteria.SearchBy;
+                    command.Parameters.Add("@TransactionStatus", SqlDbType.TinyInt).Value =
+                        criteria.TransactionStatus.HasValue ? criteria.TransactionStatus.Value : DBNull.Value;
+                    command.Parameters.Add("@CustomerType", SqlDbType.NVarChar, 20).Value =
+                        (object?)criteria.CustomerType ?? DBNull.Value;
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value = criteria.PageNumber;
+                    command.Parameters.Add("@PageSize", SqlDbType.Int).Value = criteria.PageSize;
+                    command.Parameters.Add("@SortBy", SqlDbType.NVarChar, 50).Value = criteria.SortBy;
+
                     try
                     {
                         connection.Open();

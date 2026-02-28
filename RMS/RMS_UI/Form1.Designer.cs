@@ -30,7 +30,7 @@
         {
             components = new System.ComponentModel.Container();
             autoComplete1 = new Syncfusion.Windows.Forms.Tools.AutoComplete(components);
-            ctrlAddEditSupplier1 = new Suppliers_Purchase.ctrlAddEditSupplier();
+            ctrlProductFinder1 = new Products.ctrlProductFinder();
             ((System.ComponentModel.ISupportInitialize)autoComplete1).BeginInit();
             SuspendLayout();
             // 
@@ -41,20 +41,19 @@
             autoComplete1.MetroColor = Color.FromArgb(17, 158, 218);
             autoComplete1.ParentForm = this;
             // 
-            // ctrlAddEditSupplier1
+            // ctrlProductFinder1
             // 
-            ctrlAddEditSupplier1.BackColor = Color.FromArgb(245, 247, 250);
-            ctrlAddEditSupplier1.Location = new Point(191, 12);
-            ctrlAddEditSupplier1.Name = "ctrlAddEditSupplier1";
-            ctrlAddEditSupplier1.Size = new Size(560, 900);
-            ctrlAddEditSupplier1.TabIndex = 0;
+            ctrlProductFinder1.Location = new Point(237, 63);
+            ctrlProductFinder1.Name = "ctrlProductFinder1";
+            ctrlProductFinder1.Size = new Size(400, 170);
+            ctrlProductFinder1.TabIndex = 0;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(938, 958);
-            Controls.Add(ctrlAddEditSupplier1);
+            Controls.Add(ctrlProductFinder1);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -65,6 +64,6 @@
         #endregion
 
         private Syncfusion.Windows.Forms.Tools.AutoComplete autoComplete1;
-        private Suppliers_Purchase.ctrlAddEditSupplier ctrlAddEditSupplier1;
+        private Products.ctrlProductFinder ctrlProductFinder1;
     }
 }
