@@ -112,6 +112,38 @@ namespace RMS_Business
             return new clsProduct();
         }
 
+        internal static clsProduct CreateHydrated(
+            int productID,
+            string productName,
+            int? categoryID,
+            int? brandID,
+            string? description,
+            bool isActive,
+            int reorderLevel,
+            string? imagePath,
+            DateTime createdDate,
+            int? createdByUserID,
+            DateTime updatedDate,
+            int? updatedByUserID)
+        {
+            return new clsProduct()
+            {
+                ProductID = productID,
+                ProductName = productName,
+                CategoryID = categoryID,
+                BrandID = brandID,
+                Description = description,
+                IsActive = isActive,
+                ReorderLevel = reorderLevel,
+                ImagePath = imagePath,
+                CreatedDate = createdDate,
+                CreatedByUserID = createdByUserID,
+                UpdatedDate = updatedDate,
+                UpdatedByUserID = updatedByUserID,
+                Mode = enMode.Update
+            };
+        }
+
         #region Search Criteria Class
 
         /// <summary>

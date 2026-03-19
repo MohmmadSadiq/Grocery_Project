@@ -271,5 +271,35 @@ namespace RMS_DataAccess
             }
             return dt;
         }
+
+        public static DataTable SearchActiveProductUnitsWithProductPaged(string? SearchText, int PageNumber, int PageSize)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("spProductUnit_SearchActiveWithProductPaged", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar, 200).Value = (object?)SearchText ?? DBNull.Value;
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value = PageNumber;
+                    command.Parameters.Add("@PageSize", SqlDbType.Int).Value = PageSize;
+
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
+                }
+            }
+            return dt;
+        }
     }
 }

@@ -57,6 +57,11 @@ namespace RMS_UI.Products
         /// </summary>
         public event EventHandler? UnitSelected;
 
+        /// <summary>
+        /// Fires when user confirms a selection using Enter in name/barcode search.
+        /// </summary>
+        public event EventHandler? UnitConfirmedByEnter;
+
         #endregion
 
         #region Constructor
@@ -86,6 +91,14 @@ namespace RMS_UI.Products
             // Theme
             ThemeManager.ThemeChanged += (s, e) => ApplyTheme();
             ApplyTheme();
+        }
+
+        [Browsable(true)]
+        [DefaultValue(true)]
+        public bool BrowseButtonEnabled
+        {
+            get => _btnBrowseProducts.Enabled;
+            set => _btnBrowseProducts.Enabled = value;
         }
 
         #endregion
@@ -211,6 +224,16 @@ namespace RMS_UI.Products
         /// </summary>
         private void _cmbSearchByName_EnterPressed(object? sender, EventArgs e)
         {
+            string typedText = _cmbSearchByName.Text.Trim();
+
+            if (SelectedProductUnit != null &&
+                !string.IsNullOrWhiteSpace(typedText) &&
+                string.Equals(SelectedProduct?.ProductName, typedText, StringComparison.OrdinalIgnoreCase))
+            {
+                UnitConfirmedByEnter?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             if (_nameSearchResults != null && _nameSearchResults.Rows.Count > 0)
             {
                 // Use the highlighted item if user navigated with arrow keys, otherwise first item
@@ -220,6 +243,33 @@ namespace RMS_UI.Products
 
                 _cmbSearchByName.DroppedDown = false;
                 SelectProductFromNameSearch(indexToSelect);
+                UnitConfirmedByEnter?.Invoke(this, EventArgs.Empty);
+            }
+            else if (!string.IsNullOrWhiteSpace(typedText))
+            {
+                var criteria = new clsProduct.ProductSearchCriteria
+                {
+                    SearchText = typedText,
+                    SearchBy = "Name",
+                    PageNumber = 1,
+                    PageSize = 1
+                };
+
+                _nameSearchResults = clsProduct.SearchProductsPages(criteria);
+                if (_nameSearchResults != null && _nameSearchResults.Rows.Count > 0)
+                {
+                    SelectProductFromNameSearch(0);
+                    UnitConfirmedByEnter?.Invoke(this, EventArgs.Empty);
+                }
+                else
+                {
+                    _ClearNameSearch();
+                    _cmbUnits.Items.Clear();
+                    _cmbUnits.SelectedIndex = -1;
+                    SelectedProduct = null;
+                    SelectedProductUnit = null;
+                    ProductUnits = new List<clsProductUnit>();
+                }
             }
             else
             {
@@ -258,6 +308,7 @@ namespace RMS_UI.Products
             _cmbSearchByName.TextBoxMode = true;
             _cmbSearchByName.Items.Clear();
             _cmbSearchByName.Text = productName;
+            _cmbSearchByName.TextBoxMode = false;
 
             // Populate units combo box (will auto-select base unit and set barcode)
             _LoadUnitsComboBox();
@@ -319,6 +370,7 @@ namespace RMS_UI.Products
             _cmbSearchByBarcode.TextBoxMode = true;
             _cmbSearchByBarcode.Items.Clear();
             _cmbSearchByBarcode.Text = SelectedProductUnit.Barcode ?? "";
+            _cmbSearchByBarcode.TextBoxMode = false;
 
             // Fire event
             UnitSelected?.Invoke(this, EventArgs.Empty);
@@ -419,6 +471,16 @@ namespace RMS_UI.Products
         /// </summary>
         private void _cmbSearchByBarcode_EnterPressed(object? sender, EventArgs e)
         {
+            string typedBarcode = _cmbSearchByBarcode.Text.Trim();
+
+            if (SelectedProductUnit != null &&
+                !string.IsNullOrWhiteSpace(typedBarcode) &&
+                string.Equals(SelectedProductUnit.Barcode ?? string.Empty, typedBarcode, StringComparison.OrdinalIgnoreCase))
+            {
+                UnitConfirmedByEnter?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             if (_barcodeSearchResults != null && _barcodeSearchResults.Rows.Count > 0)
             {
                 // Use the highlighted item if user navigated with arrow keys, otherwise first item
@@ -428,6 +490,34 @@ namespace RMS_UI.Products
 
                 _cmbSearchByBarcode.DroppedDown = false;
                 SelectProductUnitFromBarcodeSearch(indexToSelect);
+                UnitConfirmedByEnter?.Invoke(this, EventArgs.Empty);
+            }
+            else if (!string.IsNullOrWhiteSpace(typedBarcode))
+            {
+                clsProductUnit? exact = clsProductUnit.FindByBarcode(typedBarcode);
+                if (exact != null)
+                {
+                    SetProductUnitByID(exact.ProductUnitID);
+                    UnitConfirmedByEnter?.Invoke(this, EventArgs.Empty);
+                }
+                else
+                {
+                    _barcodeSearchResults = clsProductUnit.SearchByBarcode(typedBarcode, 1, 1);
+                    if (_barcodeSearchResults != null && _barcodeSearchResults.Rows.Count > 0)
+                    {
+                        SelectProductUnitFromBarcodeSearch(0);
+                        UnitConfirmedByEnter?.Invoke(this, EventArgs.Empty);
+                    }
+                    else
+                    {
+                        _ClearBarcodeSearch();
+                        _cmbUnits.Items.Clear();
+                        _cmbUnits.SelectedIndex = -1;
+                        SelectedProduct = null;
+                        SelectedProductUnit = null;
+                        ProductUnits = new List<clsProductUnit>();
+                    }
+                }
             }
             else
             {
@@ -467,11 +557,13 @@ namespace RMS_UI.Products
             _cmbSearchByBarcode.CancelPendingSearch();
             _cmbSearchByBarcode.Text = barcode;
             _cmbSearchByBarcode.SelectionStart = barcode.Length;
+            _cmbSearchByBarcode.TextBoxMode = false;
 
             // Update name search to show the product name (TextBoxMode blocks all events)
             _cmbSearchByName.TextBoxMode = true;
             _cmbSearchByName.Items.Clear();
             _cmbSearchByName.Text = SelectedProduct?.ProductName ?? "";
+            _cmbSearchByName.TextBoxMode = false;
 
             // Load units combo box with single unit
             _LoadUnitsComboBox();
@@ -593,12 +685,14 @@ namespace RMS_UI.Products
             _cmbSearchByName.CancelPendingSearch();
             _cmbSearchByName.Items.Clear();
             _cmbSearchByName.Text = SelectedProduct.ProductName ?? "";
+            _cmbSearchByName.TextBoxMode = false;
 
             // Set the barcode (TextBoxMode blocks events)
             _cmbSearchByBarcode.TextBoxMode = true;
             _cmbSearchByBarcode.CancelPendingSearch();
             _cmbSearchByBarcode.Items.Clear();
             _cmbSearchByBarcode.Text = pu.Barcode ?? "";
+            _cmbSearchByBarcode.TextBoxMode = false;
 
             // Load units combo box and select the matching unit
             _cmbUnits.Items.Clear();

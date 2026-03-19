@@ -148,7 +148,7 @@ BEGIN
 
     IF @PageNumber IS NULL OR @PageSize IS NULL
     BEGIN
-        -- ÈÏæä Pagination - íÑÌÚ ßá ÇáäÊÇÆÌ
+        -- ï¿½ï¿½ï¿½ï¿½ Pagination - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         SELECT ProductUnitID, ProductID, UnitID, Description, ConversionFactor, 
                SalePrice, Barcode, IsActive, CreatedDate, CreatedByUserID, 
                UpdatedDate, UpdatedByUserID 
@@ -158,7 +158,7 @@ BEGIN
     END
     ELSE
     BEGIN
-        -- ãÚ Pagination
+        -- ï¿½ï¿½ Pagination
         SELECT ProductUnitID, ProductID, UnitID, Description, ConversionFactor, 
                SalePrice, Barcode, IsActive, CreatedDate, CreatedByUserID, 
                UpdatedDate, UpdatedByUserID 
@@ -171,3 +171,92 @@ BEGIN
 END
 go
 
+CREATE OR ALTER PROCEDURE spProductUnit_SearchActiveWithProductPaged
+    @SearchText NVARCHAR(200) = NULL,
+    @PageNumber INT = 1,
+    @PageSize INT = 20
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @SearchText = LTRIM(RTRIM(ISNULL(@SearchText, '')));
+
+    IF @PageNumber < 1 SET @PageNumber = 1;
+    IF @PageSize < 1 SET @PageSize = 20;
+
+    SELECT
+        PU.ProductUnitID,
+        PU.ProductID,
+        PU.UnitID,
+        PU.Description,
+        PU.ConversionFactor,
+        PU.SalePrice,
+        PU.Barcode,
+        PU.IsActive,
+        PU.CreatedDate,
+        PU.CreatedByUserID,
+        PU.UpdatedDate,
+        PU.UpdatedByUserID,
+        P.ProductID AS Product_ProductID,
+        P.ProductName AS Product_ProductName,
+        P.CategoryID AS Product_CategoryID,
+        P.BrandID AS Product_BrandID,
+        P.Description AS Product_Description,
+        P.IsActive AS Product_IsActive,
+        P.ReorderLevel AS Product_ReorderLevel,
+        P.ImagePath AS Product_ImagePath,
+        P.CreatedDate AS Product_CreatedDate,
+        P.CreatedByUserID AS Product_CreatedByUserID,
+        P.UpdatedDate AS Product_UpdatedDate,
+        P.UpdatedByUserID AS Product_UpdatedByUserID,
+        COUNT(*) OVER() AS TotalCount
+    FROM ProductUnits PU
+    INNER JOIN Products P
+        ON P.ProductID = PU.ProductID
+    WHERE
+        PU.IsDeleted = 0
+        AND P.IsDeleted = 0
+        AND PU.IsActive = 1
+        AND P.IsActive = 1
+        AND (
+            @SearchText = ''
+            OR PU.Barcode LIKE @SearchText + '%'
+            OR P.ProductName LIKE @SearchText + '%'
+        )
+    ORDER BY P.ProductName, PU.ProductUnitID
+    OFFSET (@PageNumber - 1) * @PageSize ROWS
+    FETCH NEXT @PageSize ROWS ONLY;
+END
+GO
+
+ALTER PROCEDURE spProductUnit_GetAll
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        PU.ProductUnitID,
+        PU.ProductID,
+        P.ProductName,
+        PU.UnitID,
+        PU.Description,
+        PU.ConversionFactor,
+        PU.SalePrice,
+        PU.Barcode,
+        PU.IsActive AS ProductUnitIsActive,
+        P.IsActive AS ProductIsActive,
+        PU.CreatedDate,
+        PU.CreatedByUserID,
+        PU.UpdatedDate,
+        PU.UpdatedByUserID
+    FROM ProductUnits PU
+    INNER JOIN Products P
+        ON P.ProductID = PU.ProductID
+    WHERE
+        PU.IsDeleted = 0
+        AND P.IsDeleted = 0
+        AND PU.IsActive = 1
+        AND P.IsActive = 1
+    ORDER BY PU.ProductUnitID;
+END
+GO

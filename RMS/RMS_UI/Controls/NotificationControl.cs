@@ -65,7 +65,8 @@ namespace RMS_UI.Controls
         public void Show(string message, NotificationType type, int? duration = null)
         {
             _currentType = type;
-            _messageLabel.Text = message;
+            if (_messageLabel != null)
+                _messageLabel.Text = message;
 
             ApplyTypeStyle(type);
 
@@ -208,17 +209,19 @@ namespace RMS_UI.Controls
                     break;
             }
 
-            _contentPanel.BackColor = bgColor;
-            _iconLabel.Text = icon;
+            if (_contentPanel != null)
+                _contentPanel.BackColor = bgColor;
+            if (_iconLabel != null)
+                _iconLabel.Text = icon;
         }
 
         public void ApplyTheme()
         {
             // Notification colors are based on type, not theme
             // But we ensure text is always white for contrast
-            _messageLabel.ForeColor = Color.White;
-            _iconLabel.ForeColor = Color.White;
-            _closeButton.ForeColor = Color.White;
+            if (_messageLabel != null) _messageLabel.ForeColor = Color.White;
+            if (_iconLabel != null) _iconLabel.ForeColor = Color.White;
+            if (_closeButton != null) _closeButton.ForeColor = Color.White;
         }
         #endregion
 

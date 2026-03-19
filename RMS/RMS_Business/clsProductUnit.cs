@@ -35,6 +35,14 @@ namespace RMS_Business
             }
         }
 
+        public void SetProductInfo(clsProduct? product)
+        {
+            _productInfo = product;
+
+            if (product != null)
+                _productID = product.ProductID;
+        }
+
         // Composition: Unit Info (Lazy Loading)
         private int _unitID;
         public int UnitID
@@ -214,6 +222,52 @@ namespace RMS_Business
             };
         }
 
+        private static bool HasColumn(DataRow row, string columnName)
+        {
+            return row.Table.Columns.Contains(columnName);
+        }
+
+        private static clsProduct? ProductFromJoinedDataRow(DataRow row)
+        {
+            if (!HasColumn(row, "Product_ProductID") || row["Product_ProductID"] == DBNull.Value)
+                return null;
+
+            int productID = (int)row["Product_ProductID"];
+            string productName = row["Product_ProductName"] != DBNull.Value ? (string)row["Product_ProductName"] : string.Empty;
+            int? categoryID = row["Product_CategoryID"] != DBNull.Value ? (int?)row["Product_CategoryID"] : null;
+            int? brandID = row["Product_BrandID"] != DBNull.Value ? (int?)row["Product_BrandID"] : null;
+            string? description = row["Product_Description"] != DBNull.Value ? (string?)row["Product_Description"] : null;
+            bool isActive = row["Product_IsActive"] != DBNull.Value && (bool)row["Product_IsActive"];
+            int reorderLevel = row["Product_ReorderLevel"] != DBNull.Value ? (int)row["Product_ReorderLevel"] : 0;
+            string? imagePath = row["Product_ImagePath"] != DBNull.Value ? (string?)row["Product_ImagePath"] : null;
+            DateTime createdDate = row["Product_CreatedDate"] != DBNull.Value ? (DateTime)row["Product_CreatedDate"] : DateTime.MinValue;
+            int? createdByUserID = row["Product_CreatedByUserID"] != DBNull.Value ? (int?)row["Product_CreatedByUserID"] : null;
+            DateTime updatedDate = row["Product_UpdatedDate"] != DBNull.Value ? (DateTime)row["Product_UpdatedDate"] : DateTime.MinValue;
+            int? updatedByUserID = row["Product_UpdatedByUserID"] != DBNull.Value ? (int?)row["Product_UpdatedByUserID"] : null;
+
+            return clsProduct.CreateHydrated(
+                productID,
+                productName,
+                categoryID,
+                brandID,
+                description,
+                isActive,
+                reorderLevel,
+                imagePath,
+                createdDate,
+                createdByUserID,
+                updatedDate,
+                updatedByUserID);
+        }
+
+        private static clsProductUnit FromJoinedDataRow(DataRow row)
+        {
+            clsProductUnit productUnit = FromDataRow(row);
+            clsProduct? product = ProductFromJoinedDataRow(row);
+            productUnit.SetProductInfo(product);
+            return productUnit;
+        }
+
         /// <summary>
         /// Gets all active ProductUnits that have a SalePrice set, as a typed list.
         /// Useful for POS grids where only sellable units should appear.
@@ -250,6 +304,32 @@ namespace RMS_Business
                 foreach (DataRow row in dt.Rows)
                 {
                     list.Add(FromDataRow(row));
+                }
+            }
+
+            return list;
+        }
+
+        public static DataTable SearchActiveWithProductPagedAsTable(string? searchText, int pageNumber, int pageSize)
+        {
+            return clsProductUnitData.SearchActiveProductUnitsWithProductPaged(searchText, pageNumber, pageSize);
+        }
+
+        public static List<clsProductUnit> SearchActiveWithProductPaged(string? searchText, int pageNumber, int pageSize, out int totalCount)
+        {
+            List<clsProductUnit> list = new List<clsProductUnit>();
+            totalCount = 0;
+
+            DataTable dt = SearchActiveWithProductPagedAsTable(searchText, pageNumber, pageSize);
+
+            if (dt != null)
+            {
+                if (dt.Rows.Count > 0 && HasColumn(dt.Rows[0], "TotalCount") && dt.Rows[0]["TotalCount"] != DBNull.Value)
+                    totalCount = (int)dt.Rows[0]["TotalCount"];
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(FromJoinedDataRow(row));
                 }
             }
 

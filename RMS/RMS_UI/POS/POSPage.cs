@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -8,6 +7,7 @@ using System.Windows.Forms;
 using RMS_Business;
 using RMS_UI.Controls;
 using RMS_UI.Payment;
+using RMS_UI.POS.Cart;
 using RMS_UI.Products;
 using RMS_UI.Utilities;
 
@@ -22,27 +22,16 @@ namespace RMS_UI.POS
     {
         #region Fields
 
+        private int _productSearchPageSize = 60;
+        private int _currentSearchPage = 1;
+        private int _totalProductSearchCount = 0;
+        private string _currentSearchText = string.Empty;
+        private bool _isUpdatingPageSize = false;
         private List<clsProductUnit> _allProductUnits = new();
-        private readonly List<CartItem> _cartItems = new();
         private NotificationControl _notification = null!;
 
         // Debounce timer for search
         private System.Windows.Forms.Timer _searchTimer = null!;
-
-        #endregion
-
-        #region Nested Types
-
-        /// <summary>
-        /// Wraps a <see cref="clsProductSale"/> with cached display info
-        /// so the grid doesn't re-trigger lazy loads on every refresh.
-        /// </summary>
-        private class CartItem
-        {
-            public clsProductSale SaleItem { get; set; } = null!;
-            public string ProductName { get; set; } = "";
-            public string UnitName { get; set; } = "";
-        }
 
         #endregion
 
@@ -53,9 +42,10 @@ namespace RMS_UI.POS
             InitializeComponent();
 
             SetupNotification();
-            SetupCartGrid();
             SetupCustomerCombo();
             SetupSearchBox();
+            SetupPagingControls();
+            SetupProductFinder();
             SetupPaymentPanel();
             WireEvents();
 
@@ -84,74 +74,6 @@ namespace RMS_UI.POS
             _notification.BringToFront();
         }
 
-        private void SetupCartGrid()
-        {
-            _dgvCart.Columns.Clear();
-
-            _dgvCart.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "colNo",
-                HeaderText = "#",
-                Width = 35,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable
-            });
-
-            _dgvCart.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "colProduct",
-                HeaderText = "Product",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable
-            });
-
-            _dgvCart.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "colQty",
-                HeaderText = "Qty",
-                Width = 50,
-                ReadOnly = false,   // editable for quantity changes
-                SortMode = DataGridViewColumnSortMode.NotSortable
-            });
-
-            _dgvCart.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "colPrice",
-                HeaderText = "Price",
-                Width = 70,
-                ReadOnly = true,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N2" },
-                SortMode = DataGridViewColumnSortMode.NotSortable
-            });
-
-            _dgvCart.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "colSubtotal",
-                HeaderText = "Subtotal",
-                Width = 80,
-                ReadOnly = true,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N2" },
-                SortMode = DataGridViewColumnSortMode.NotSortable
-            });
-
-            var btnCol = new DataGridViewButtonColumn
-            {
-                Name = "colRemove",
-                HeaderText = "",
-                Text = "✕",
-                UseColumnTextForButtonValue = true,
-                Width = 36,
-                FlatStyle = FlatStyle.Flat
-            };
-            _dgvCart.Columns.Add(btnCol);
-
-            _dgvCart.DefaultCellStyle.Font = new Font("Segoe UI", 9.5F);
-            _dgvCart.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            _dgvCart.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
-            _dgvCart.EnableHeadersVisualStyles = false;
-        }
-
         private void SetupCustomerCombo()
         {
             // Placeholder item — fully functional customer search to be wired
@@ -167,8 +89,25 @@ namespace RMS_UI.POS
             _searchTimer.Tick += (s, e) =>
             {
                 _searchTimer.Stop();
-                FilterProducts();
+                SearchProducts();
             };
+        }
+
+        private void SetupPagingControls()
+        {
+            _isUpdatingPageSize = true;
+            _cmbPageSize.Items.Clear();
+            _cmbPageSize.Items.AddRange(new object[] { 20, 40, 60, 100 });
+            _cmbPageSize.SelectedItem = _productSearchPageSize;
+            _isUpdatingPageSize = false;
+
+            UpdatePagingUi();
+        }
+
+        private void SetupProductFinder()
+        {
+            _ctrlProductFinder.BrowseButtonEnabled = false;
+            _ctrlProductFinder.UnitConfirmedByEnter += CtrlProductFinder_UnitConfirmedByEnter;
         }
 
         private void SetupPaymentPanel()
@@ -187,14 +126,17 @@ namespace RMS_UI.POS
             };
 
             _txtSearch.KeyDown += TxtSearch_KeyDown;
+            _btnPrevPage.Click += BtnPrevPage_Click;
+            _btnNextPage.Click += BtnNextPage_Click;
+            _cmbPageSize.SelectedIndexChanged += CmbPageSize_SelectedIndexChanged;
+            _btnAddFinderSelection.Click += BtnAddFinderSelection_Click;
 
             _btnClearCart.Click += BtnClearCart_Click;
             _btnCompleteSale.Click += BtnCompleteSale_Click;
             _btnNewSale.Click += BtnNewSale_Click;
 
-            _dgvCart.CellContentClick += DgvCart_CellContentClick;
-            _dgvCart.CellEndEdit += DgvCart_CellEndEdit;
-            _dgvCart.EditingControlShowing += DgvCart_EditingControlShowing;
+            _ctrlSaleCart.SalesChanged += (s, e) => UpdateSummary();
+            _ctrlSaleCart.TotalChanged += (s, e) => UpdateSummary();
         }
 
         #endregion
@@ -203,17 +145,32 @@ namespace RMS_UI.POS
 
         private void LoadProducts()
         {
+            LoadProductsFromServer(string.Empty, _currentSearchPage);
+        }
+
+        private void LoadProductsFromServer(string? searchText, int pageNumber)
+        {
             _flpProducts.SuspendLayout();
             _flpProducts.Controls.Clear();
 
             try
             {
-                _allProductUnits = clsProductUnit.GetAllActiveProductUnitList();
+                _currentSearchText = searchText?.Trim() ?? string.Empty;
+                _currentSearchPage = pageNumber < 1 ? 1 : pageNumber;
+
+                _allProductUnits = clsProductUnit.SearchActiveWithProductPaged(
+                    _currentSearchText,
+                    _currentSearchPage,
+                    _productSearchPageSize,
+                    out int totalCount);
+
+                _totalProductSearchCount = totalCount;
             }
             catch
             {
                 _notification.ShowError("Failed to load products.");
                 _allProductUnits = new List<clsProductUnit>();
+                _totalProductSearchCount = 0;
             }
 
             foreach (var pu in _allProductUnits)
@@ -223,6 +180,7 @@ namespace RMS_UI.POS
             }
 
             _flpProducts.ResumeLayout(true);
+            UpdatePagingUi();
         }
 
         private ctrlProductCard CreateProductCard(clsProductUnit pu)
@@ -259,39 +217,92 @@ namespace RMS_UI.POS
             }
             else
             {
-                // Just filter — no barcode found
+                // No exact barcode match, run server search.
                 _searchTimer.Stop();
-                FilterProducts();
+                SearchProducts();
             }
         }
 
-        private void FilterProducts()
+        private void SearchProducts()
         {
-            string searchText = _txtSearch.Text.Trim().ToLowerInvariant();
+            string searchText = _txtSearch.Text.Trim();
+            _currentSearchPage = 1;
+            LoadProductsFromServer(searchText, _currentSearchPage);
+        }
 
-            _flpProducts.SuspendLayout();
+        private void CtrlProductFinder_UnitConfirmedByEnter(object? sender, EventArgs e)
+        {
+            AddFinderSelectionToCart();
+        }
 
-            foreach (Control ctrl in _flpProducts.Controls)
+        private void BtnAddFinderSelection_Click(object? sender, EventArgs e)
+        {
+            AddFinderSelectionToCart();
+        }
+
+        private void AddFinderSelectionToCart()
+        {
+            clsProductUnit? selected = _ctrlProductFinder.SelectedProductUnit;
+            if (selected == null)
             {
-                if (ctrl is ctrlProductCard card && card.ProductUnit != null)
-                {
-                    if (string.IsNullOrEmpty(searchText))
-                    {
-                        card.Visible = true;
-                        continue;
-                    }
-
-                    string productName = card.ProductUnit.ProductInfo?.ProductName?.ToLowerInvariant() ?? "";
-                    string barcode = card.ProductUnit.Barcode?.ToLowerInvariant() ?? "";
-                    string unitName = card.ProductUnit.UnitInfo?.UnitName?.ToLowerInvariant() ?? "";
-
-                    card.Visible = productName.Contains(searchText)
-                                || barcode.Contains(searchText)
-                                || unitName.Contains(searchText);
-                }
+                _notification.ShowWarning("No matching product unit selected.");
+                return;
             }
 
-            _flpProducts.ResumeLayout(true);
+            AddToCart(selected);
+            _ctrlProductFinder.ResetAll();
+        }
+
+        private void BtnPrevPage_Click(object? sender, EventArgs e)
+        {
+            if (_currentSearchPage <= 1)
+                return;
+
+            _currentSearchPage--;
+            LoadProductsFromServer(_currentSearchText, _currentSearchPage);
+        }
+
+        private void BtnNextPage_Click(object? sender, EventArgs e)
+        {
+            int totalPages = GetTotalPages();
+            if (_currentSearchPage >= totalPages)
+                return;
+
+            _currentSearchPage++;
+            LoadProductsFromServer(_currentSearchText, _currentSearchPage);
+        }
+
+        private void CmbPageSize_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (_isUpdatingPageSize)
+                return;
+
+            if (_cmbPageSize.SelectedItem is int pageSize)
+            {
+                _productSearchPageSize = pageSize;
+                _currentSearchPage = 1;
+                LoadProductsFromServer(_currentSearchText, _currentSearchPage);
+            }
+        }
+
+        private int GetTotalPages()
+        {
+            if (_productSearchPageSize <= 0)
+                return 1;
+
+            return Math.Max(1, (int)Math.Ceiling((double)_totalProductSearchCount / _productSearchPageSize));
+        }
+
+        private void UpdatePagingUi()
+        {
+            int totalPages = GetTotalPages();
+
+            if (_currentSearchPage > totalPages)
+                _currentSearchPage = totalPages;
+
+            _btnPrevPage.Enabled = _currentSearchPage > 1;
+            _btnNextPage.Enabled = _currentSearchPage < totalPages;
+            _lblPageInfo.Text = $"Page {_currentSearchPage} of {totalPages} ({_totalProductSearchCount})";
         }
 
         #endregion
@@ -305,134 +316,41 @@ namespace RMS_UI.POS
 
         private void AddToCart(clsProductUnit pu)
         {
-            // Look for existing item with the same ProductUnitID
-            var existing = _cartItems.FirstOrDefault(
-                ci => ci.SaleItem.ProductUnitID == pu.ProductUnitID);
-
+            var existing = _ctrlSaleCart.Sales.FirstOrDefault(s => s.ProductUnitID == pu.ProductUnitID);
             if (existing != null)
             {
-                // Increment quantity
-                existing.SaleItem.Quantity += 1;
+                _ctrlSaleCart.UpdateQuantity(existing, existing.Quantity + 1);
+                return;
             }
-            else
+
+            var saleItem = new clsProductSale
             {
-                // Cache display strings from lazy-loaded properties
-                string productName = pu.ProductInfo?.ProductName ?? "Unknown";
-                string unitName = pu.UnitInfo?.UnitName ?? "";
-                string displayName = string.IsNullOrEmpty(unitName)
-                    ? productName
-                    : $"{productName} ({unitName})";
+                ProductUnitID = pu.ProductUnitID,
+                Quantity = 1,
+                UnitPrice = pu.SalePrice ?? 0
+            };
 
-                _cartItems.Add(new CartItem
-                {
-                    SaleItem = new clsProductSale
-                    {
-                        ProductUnitID = pu.ProductUnitID,
-                        Quantity = 1,
-                        UnitPrice = pu.SalePrice ?? 0
-                    },
-                    ProductName = displayName,
-                    UnitName = unitName
-                });
-            }
-
-            RefreshCart();
+            _ctrlSaleCart.AddSale(saleItem);
         }
 
         private void RefreshCart()
         {
-            _dgvCart.SuspendLayout();
-            _dgvCart.Rows.Clear();
-
-            for (int i = 0; i < _cartItems.Count; i++)
-            {
-                var ci = _cartItems[i];
-                decimal subtotal = ci.SaleItem.Quantity * ci.SaleItem.UnitPrice;
-
-                _dgvCart.Rows.Add(
-                    i + 1,
-                    ci.ProductName,
-                    ci.SaleItem.Quantity,
-                    ci.SaleItem.UnitPrice,
-                    subtotal,
-                    "✕"
-                );
-            }
-
-            _dgvCart.ResumeLayout(true);
+            _ctrlSaleCart.ShowSales(_ctrlSaleCart.Sales);
             UpdateSummary();
         }
 
         private void UpdateSummary()
         {
-            int totalItems = _cartItems.Sum(ci => (int)ci.SaleItem.Quantity);
-            decimal totalAmount = _cartItems.Sum(ci => ci.SaleItem.Quantity * ci.SaleItem.UnitPrice);
+            int totalItems = _ctrlSaleCart.Sales.Sum(s => (int)s.Quantity);
+            decimal totalAmount = _ctrlSaleCart.Sales.Sum(s => s.Quantity * s.UnitPrice);
+            int lineCount = _ctrlSaleCart.Sales.Count;
 
             _lblCartItemCount.Text = $"{totalItems} item{(totalItems != 1 ? "s" : "")}";
-            _lblItemsCount.Text = $"{_cartItems.Count} line{(_cartItems.Count != 1 ? "s" : "")} · {totalItems} item{(totalItems != 1 ? "s" : "")}";
+            _lblItemsCount.Text = $"{lineCount} line{(lineCount != 1 ? "s" : "")} · {totalItems} item{(totalItems != 1 ? "s" : "")}";
             _lblTotalAmount.Text = totalAmount.ToString("N2");
 
-            _ctrlPaymentPanel.TotalAmount = totalAmount;
-        }
-
-        #endregion
-
-        #region Cart Grid Events
-
-        private void DgvCart_CellContentClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            // Handle remove button click
-            if (e.RowIndex < 0 || e.RowIndex >= _cartItems.Count) return;
-            if (e.ColumnIndex != _dgvCart.Columns["colRemove"]!.Index) return;
-
-            _cartItems.RemoveAt(e.RowIndex);
-            RefreshCart();
-        }
-
-        private void DgvCart_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.RowIndex >= _cartItems.Count) return;
-            if (e.ColumnIndex != _dgvCart.Columns["colQty"]!.Index) return;
-
-            var cellValue = _dgvCart.Rows[e.RowIndex].Cells["colQty"].Value;
-
-            if (cellValue != null && decimal.TryParse(cellValue.ToString(), out decimal newQty))
-            {
-                if (newQty <= 0)
-                {
-                    // Remove item if quantity is 0 or negative
-                    _cartItems.RemoveAt(e.RowIndex);
-                }
-                else
-                {
-                    _cartItems[e.RowIndex].SaleItem.Quantity = newQty;
-                }
-            }
-            else
-            {
-                // Invalid input — revert to 1
-                _cartItems[e.RowIndex].SaleItem.Quantity = 1;
-            }
-
-            RefreshCart();
-        }
-
-        /// <summary>
-        /// Only allow numeric input in the Qty column.
-        /// </summary>
-        private void DgvCart_EditingControlShowing(object? sender, DataGridViewEditingControlShowingEventArgs e)
-        {
-            if (_dgvCart.CurrentCell?.ColumnIndex == _dgvCart.Columns["colQty"]!.Index)
-            {
-                e.Control.KeyPress -= QtyCell_KeyPress;
-                e.Control.KeyPress += QtyCell_KeyPress;
-            }
-        }
-
-        private void QtyCell_KeyPress(object? sender, KeyPressEventArgs e)
-        {
-            if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.' && !char.IsControl(e.KeyChar))
-                e.Handled = true;
+            if (_ctrlPaymentPanel != null && !_ctrlPaymentPanel.IsDisposed)
+                _ctrlPaymentPanel.TotalAmount = totalAmount;
         }
 
         #endregion
@@ -441,7 +359,7 @@ namespace RMS_UI.POS
 
         private void BtnCompleteSale_Click(object? sender, EventArgs e)
         {
-            if (_cartItems.Count == 0)
+            if (_ctrlSaleCart.Sales.Count == 0)
             {
                 _notification.ShowWarning("Cart is empty. Add products before completing the sale.");
                 return;
@@ -449,7 +367,7 @@ namespace RMS_UI.POS
 
             try
             {
-                decimal totalAmount = _cartItems.Sum(ci => ci.SaleItem.Quantity * ci.SaleItem.UnitPrice);
+                decimal totalAmount = _ctrlSaleCart.Sales.Sum(s => s.Quantity * s.UnitPrice);
 
                 // Build sale object
                 var sale = new clsSales
@@ -460,7 +378,7 @@ namespace RMS_UI.POS
                     TotalAmount = totalAmount,
                     CustomerID = GetSelectedCustomerID(),
                     CreatedByUserID = clsGlobalUser.CurrentUser?.UserID,
-                    SaleItems = _cartItems.Select(ci => ci.SaleItem).ToList()
+                    SaleItems = _ctrlSaleCart.Sales.ToList()
                 };
 
                 if (!sale.Save())
@@ -492,7 +410,7 @@ namespace RMS_UI.POS
 
         private void BtnNewSale_Click(object? sender, EventArgs e)
         {
-            if (_cartItems.Count > 0)
+            if (_ctrlSaleCart.Sales.Count > 0)
             {
                 var result = MessageBox.Show(
                     "Discard current cart and start a new sale?",
@@ -508,7 +426,7 @@ namespace RMS_UI.POS
 
         private void BtnClearCart_Click(object? sender, EventArgs e)
         {
-            if (_cartItems.Count == 0) return;
+            if (_ctrlSaleCart.Sales.Count == 0) return;
 
             var result = MessageBox.Show(
                 "Clear all items from the cart?",
@@ -518,14 +436,14 @@ namespace RMS_UI.POS
 
             if (result != DialogResult.Yes) return;
 
-            _cartItems.Clear();
+            _ctrlSaleCart.Clear();
             _ctrlPaymentPanel.ClearPendingPayments();
             RefreshCart();
         }
 
         private void ResetForNewSale()
         {
-            _cartItems.Clear();
+            _ctrlSaleCart.Clear();
             _ctrlPaymentPanel.ClearPendingPayments();
             _cmbCustomer.SelectedIndex = 0;
             _txtSearch.Clear();
@@ -562,6 +480,26 @@ namespace RMS_UI.POS
             _txtSearch.BackColor = c.ContentBackground;
             _txtSearch.ForeColor = c.PrimaryText;
 
+            _pnlPaging.BackColor = c.FormBackground;
+            _lblPageInfo.ForeColor = c.SecondaryText;
+            _lblPageSize.ForeColor = c.SecondaryText;
+
+            _btnPrevPage.BackColor = c.PrimaryLight;
+            _btnPrevPage.ForeColor = c.Primary;
+            _btnPrevPage.FlatAppearance.MouseOverBackColor = c.BorderColor;
+
+            _btnNextPage.BackColor = c.PrimaryLight;
+            _btnNextPage.ForeColor = c.Primary;
+            _btnNextPage.FlatAppearance.MouseOverBackColor = c.BorderColor;
+
+            _pnlFinderActions.BackColor = c.FormBackground;
+            _btnAddFinderSelection.BackColor = c.Primary;
+            _btnAddFinderSelection.ForeColor = Color.White;
+            _btnAddFinderSelection.FlatAppearance.MouseOverBackColor = c.PrimaryHover;
+
+            _cmbPageSize.BackColor = c.ContentBackground;
+            _cmbPageSize.ForeColor = c.PrimaryText;
+
             // Cart header
             _pnlCartHeader.BackColor = c.ContentBackground;
             _lblCartTitle.ForeColor = c.TitleText;
@@ -578,15 +516,7 @@ namespace RMS_UI.POS
             _cmbCustomer.BackColor = c.ContentBackground;
             _cmbCustomer.ForeColor = c.PrimaryText;
 
-            // Cart grid
-            _dgvCart.BackgroundColor = c.ContentBackground;
-            _dgvCart.GridColor = c.BorderColor;
-            _dgvCart.DefaultCellStyle.BackColor = c.ContentBackground;
-            _dgvCart.DefaultCellStyle.ForeColor = c.PrimaryText;
-            _dgvCart.DefaultCellStyle.SelectionBackColor = c.PrimaryLight;
-            _dgvCart.DefaultCellStyle.SelectionForeColor = c.PrimaryText;
-            _dgvCart.ColumnHeadersDefaultCellStyle.BackColor = c.FormBackground;
-            _dgvCart.ColumnHeadersDefaultCellStyle.ForeColor = c.SecondaryText;
+            // Sale cart control themes itself
 
             // Summary
             _pnlSummary.BackColor = c.ContentBackground;

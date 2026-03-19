@@ -116,7 +116,7 @@ namespace RMS_UI.Payment
         public decimal GetTotalPaid()
         {
             if (IsPendingMode)
-                return _pendingPayments.Sum(p => p.PaymentAmount);
+                return _pendingPayments.Where(p => p != null).Sum(p => p.PaymentAmount);
             else
                 return _displayRows.Sum(r => r.Amount);
         }
