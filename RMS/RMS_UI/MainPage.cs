@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using RMS_UI.Controls;
+using RMS_UI.POS;
 using RMS_UI.Settings;
 using RMS_UI.Utilities;
 
@@ -35,6 +36,7 @@ namespace RMS_UI.Views
         {
             // Store original full texts
             _buttonFullTexts[btnDashboard] = "🏠  Dashboard";
+            _buttonFullTexts[btnPOS] = "🛒  POS";
             _buttonFullTexts[btnProducts] = "📦  Products";
             _buttonFullTexts[btnSuppliers] = "🚚  Suppliers";
             _buttonFullTexts[btnReports] = "📊  Reports";
@@ -42,6 +44,7 @@ namespace RMS_UI.Views
 
             // Wire up button click events
             btnDashboard.Click += (s, e) => OnMenuItemClicked("Dashboard");
+            btnPOS.Click += (s, e) => OnMenuItemClicked("POS");
             btnProducts.Click += (s, e) => OnMenuItemClicked("Products");
             btnSuppliers.Click += (s, e) => OnMenuItemClicked("Suppliers");
             btnReports.Click += (s, e) => OnMenuItemClicked("Reports");
@@ -84,7 +87,7 @@ namespace RMS_UI.Views
 
         private void UpdateButtonsAlignment()
         {
-            var buttons = new[] { btnDashboard, btnProducts, btnSuppliers, btnReports, btnSettings };
+            var buttons = new[] { btnDashboard, btnPOS, btnProducts, btnSuppliers, btnReports, btnSettings };
             
             foreach (var btn in buttons)
             {
@@ -138,6 +141,9 @@ namespace RMS_UI.Views
         {
             switch (menuItem)
             {
+                case "POS":
+                    LoadContent(new POSPage());
+                    break;
                 case "Products":
                     LoadContent(new ProductsPage());
                     break;

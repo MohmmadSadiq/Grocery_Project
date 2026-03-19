@@ -215,6 +215,28 @@ namespace RMS_Business
         }
 
         /// <summary>
+        /// Gets all active ProductUnits that have a SalePrice set, as a typed list.
+        /// Useful for POS grids where only sellable units should appear.
+        /// </summary>
+        public static List<clsProductUnit> GetAllActiveProductUnitList()
+        {
+            List<clsProductUnit> list = new List<clsProductUnit>();
+            DataTable dt = GetAllProductUnit();
+
+            if (dt != null)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    var pu = FromDataRow(row);
+                    if (pu.IsActive && pu.SalePrice.HasValue)
+                        list.Add(pu);
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>
         /// Gets all ProductUnits for a given ProductID as a List of clsProductUnit objects.
         /// Uses lazy loading for ProductInfo and UnitInfo compositions.
         /// </summary>
@@ -223,9 +245,12 @@ namespace RMS_Business
             List<clsProductUnit> list = new List<clsProductUnit>();
             DataTable dt = GetProductUnitsByProductID(productId);
 
-            foreach (DataRow row in dt.Rows)
+            if (dt != null)
             {
-                list.Add(FromDataRow(row));
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(FromDataRow(row));
+                }
             }
 
             return list;
