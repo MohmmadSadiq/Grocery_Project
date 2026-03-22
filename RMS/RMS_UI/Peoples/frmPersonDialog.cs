@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using RMS_Business;
@@ -657,7 +658,8 @@ namespace RMS_UI.Peoples
             {
                 try
                 {
-                    _picPersonImage.Image = Image.FromFile(_person.ImagePath);
+                    _picPersonImage.Image?.Dispose();
+                    _picPersonImage.Image = LoadImageWithoutLock(_person.ImagePath);
                     _selectedImagePath = _person.ImagePath;
                     _btnRemoveImage.Enabled = true;
                 }
@@ -710,7 +712,7 @@ namespace RMS_UI.Peoples
                 try
                 {
                     _picPersonImage.Image?.Dispose();
-                    _picPersonImage.Image = Image.FromFile(dlg.FileName);
+                    _picPersonImage.Image = LoadImageWithoutLock(dlg.FileName);
                     _selectedImagePath = dlg.FileName;
                     _imageRemoved = false;
                     _btnRemoveImage.Enabled = true;
@@ -730,6 +732,14 @@ namespace RMS_UI.Peoples
             _selectedImagePath = null;
             _imageRemoved = true;
             _btnRemoveImage.Enabled = false;
+        }
+
+        private static Image LoadImageWithoutLock(string filePath)
+        {
+            byte[] bytes = File.ReadAllBytes(filePath);
+            using var ms = new MemoryStream(bytes);
+            using var image = Image.FromStream(ms);
+            return new Bitmap(image);
         }
         #endregion
 

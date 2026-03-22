@@ -39,6 +39,18 @@
     <Compile Update="Products\ProductUnite\UnitDialog.Designer.cs">
       <DependentUpon>UnitDialog.cs</DependentUpon>
     </Compile>
+    <Compile Update="Users\UsersPage.Designer.cs">
+      <DependentUpon>UsersPage.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Users\ctrlAddEditUser.Designer.cs">
+      <DependentUpon>ctrlAddEditUser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Users\frmAddEditUser.Designer.cs">
+      <DependentUpon>frmAddEditUser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\frmLogin.Designer.cs">
+      <DependentUpon>frmLogin.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

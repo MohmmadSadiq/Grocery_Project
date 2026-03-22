@@ -7,6 +7,7 @@ using RMS_Business;
 using RMS_UI.Controls;
 using RMS_UI.PaymentMethods;
 using RMS_UI.Utilities;
+using RMS_UI.Views;
 
 namespace RMS_UI.Settings
 {
@@ -27,6 +28,7 @@ namespace RMS_UI.Settings
         private Panel _cardPaymentMethods = null!;
         private Panel _cardProductSettings = null!;
         private Panel _cardUserSettings = null!;
+        private Panel _cardUsersPage = null!;
         private Panel _cardCompanyInfo = null!;
         #endregion
 
@@ -108,11 +110,19 @@ namespace RMS_UI.Settings
 
             _cardUserSettings = CreateSettingsCard(
                 "👤", "User Settings",
-                "Manage user accounts\nand permissions",
+                "Manage your own account\npreferences and profile",
                 null,
                 "",
                 false,
                 null);
+
+            _cardUsersPage = CreateSettingsCard(
+                "👥", "Users Page",
+                "Manage users list, status\nand account access",
+                GetUserCount,
+                "users",
+                true,
+                () => OpenUserManagement());
 
             _cardCompanyInfo = CreateSettingsCard(
                 "🏢", "Company Info",
@@ -125,6 +135,7 @@ namespace RMS_UI.Settings
             _cardsContainer.Controls.Add(_cardPaymentMethods);
             _cardsContainer.Controls.Add(_cardProductSettings);
             _cardsContainer.Controls.Add(_cardUserSettings);
+            _cardsContainer.Controls.Add(_cardUsersPage);
             _cardsContainer.Controls.Add(_cardCompanyInfo);
 
             // Add controls (reverse dock order)
@@ -318,6 +329,50 @@ namespace RMS_UI.Settings
             RefreshCardCount(_cardProductSettings, GetProductSettingsCount, "items");
         }
 
+        private void OpenUserManagement()
+        {
+            MainPage? mainPage = FindParentMainPage();
+            if (mainPage != null)
+            {
+                mainPage.LoadContent(new UsersPage());
+                return;
+            }
+
+            // Fallback if settings page is ever hosted outside MainPage.
+            using var dialog = new Form
+            {
+                Text = "Users Management",
+                StartPosition = FormStartPosition.CenterParent,
+                Size = new Size(1200, 760),
+                MinimizeBox = false,
+                MaximizeBox = false
+            };
+
+            var usersPage = new UsersPage
+            {
+                Dock = DockStyle.Fill
+            };
+
+            dialog.Controls.Add(usersPage);
+            dialog.ShowDialog(this.FindForm());
+        }
+
+        private MainPage? FindParentMainPage()
+        {
+            Control? current = this;
+            while (current != null)
+            {
+                if (current is MainPage mainPage)
+                {
+                    return mainPage;
+                }
+
+                current = current.Parent;
+            }
+
+            return null;
+        }
+
         private void RefreshCardCount(Panel card, Func<int> countProvider, string suffix)
         {
             foreach (Control ctrl in card.Controls)
@@ -359,6 +414,36 @@ namespace RMS_UI.Settings
                 return count;
             }
             catch { return 0; }
+        }
+
+        private int GetUserCount()
+        {
+            try
+            {
+                var criteria = new clsUser.UserSearchCriteria
+                {
+                    PageNumber = 1,
+                    PageSize = 1,
+                    SortBy = "UserName"
+                };
+
+                DataTable users = clsUser.SearchUserPages(criteria);
+                if (users.Rows.Count > 0 && users.Columns.Contains("TotalRows"))
+                {
+                    return Convert.ToInt32(users.Rows[0]["TotalRows"]);
+                }
+
+                if (users.Rows.Count > 0 && users.Columns.Contains("TotalCount"))
+                {
+                    return Convert.ToInt32(users.Rows[0]["TotalCount"]);
+                }
+
+                return users.Rows.Count;
+            }
+            catch
+            {
+                return 0;
+            }
         }
         #endregion
 

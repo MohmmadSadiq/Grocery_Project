@@ -43,7 +43,6 @@
             // 
             ctrlPersonCard1.BackColor = Color.FromArgb(255, 255, 255);
             ctrlPersonCard1.ContextMenuStrip = contextMenuStrip1;
-            ctrlPersonCard1.AutoScaleMode = AutoScaleMode.None;
             ctrlPersonCard1.Location = new Point(0, 0);
             ctrlPersonCard1.Margin = new Padding(10);
             ctrlPersonCard1.Name = "ctrlPersonCard1";
@@ -106,7 +105,6 @@
             // 
             // ctrlPersonCardWithConfig
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.None;
             BackColor = Color.Transparent;
             Controls.Add(_btnConfig);

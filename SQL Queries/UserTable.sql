@@ -212,3 +212,82 @@ BEGIN
       AND IsDeleted != 1
 END
 GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_SearchUsersPages
+    @SearchText NVARCHAR(100) = NULL,
+    @SearchBy NVARCHAR(50) = N'UserName',
+    @IsActive BIT = NULL,
+    @PageNumber INT = 1,
+    @PageSize INT = 20,
+    @SortBy NVARCHAR(50) = N'UserName'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @PageNumber IS NULL OR @PageNumber < 1 SET @PageNumber = 1;
+    IF @PageSize IS NULL OR @PageSize < 1 SET @PageSize = 20;
+
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+    DECLARE @SearchTextTrimmed NVARCHAR(100) = NULLIF(LTRIM(RTRIM(@SearchText)), N'');
+
+    ;WITH UserSource AS
+    (
+        SELECT
+            U.UserID,
+            U.UserName,
+            P.FullName,
+            P.ImagePath,
+            U.IsActive
+        FROM dbo.Users AS U
+        INNER JOIN dbo.People AS P
+            ON P.PersonID = U.PersonID
+        WHERE
+            (@IsActive IS NULL OR U.IsActive = @IsActive)
+            AND
+            (
+                @SearchTextTrimmed IS NULL
+                OR
+                (
+                    @SearchBy = N'UserID'
+                    AND TRY_CAST(@SearchTextTrimmed AS INT) IS NOT NULL
+                    AND U.UserID = TRY_CAST(@SearchTextTrimmed AS INT)
+                )
+                OR
+                (
+                    @SearchBy = N'IsActive'
+                    AND
+                    (
+                        (@SearchTextTrimmed IN (N'1', N'true', N'TRUE', N'True', N'active', N'ACTIVE', N'Active') AND U.IsActive = 1)
+                        OR
+                        (@SearchTextTrimmed IN (N'0', N'false', N'FALSE', N'False', N'inactive', N'INACTIVE', N'Inactive') AND U.IsActive = 0)
+                    )
+                )
+                OR
+                (
+                    @SearchBy = N'FullName'
+                    AND P.FullName LIKE N'%' + @SearchTextTrimmed + N'%'
+                )
+                OR
+                (
+                    @SearchBy NOT IN (N'UserID', N'IsActive', N'FullName')
+                    AND U.UserName LIKE N'%' + @SearchTextTrimmed + N'%'
+                )
+            )
+    )
+    SELECT
+        UserID,
+        UserName,
+        FullName,
+        ImagePath,
+        IsActive,
+        COUNT(1) OVER() AS TotalRows
+    FROM UserSource
+    ORDER BY
+        CASE WHEN @SortBy = N'UserID' THEN CAST(UserID AS BIGINT) END ASC,
+        CASE WHEN @SortBy = N'UserName' THEN UserName END ASC,
+        CASE WHEN @SortBy = N'FullName' THEN FullName END ASC,
+        CASE WHEN @SortBy = N'IsActive' THEN CAST(IsActive AS INT) END ASC,
+        UserID ASC
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+END;
+GO

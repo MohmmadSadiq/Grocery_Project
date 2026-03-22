@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using RMS_DataAccess;
 
 namespace RMS_Business
@@ -105,6 +106,26 @@ namespace RMS_Business
                 return null;
         }
 
+        public static clsUser? FindByUserName(string userName)
+        {
+            int userID = -1;
+            int personID = 0;
+            string dbUserName = string.Empty;
+            string passwordHash = string.Empty;
+            string passwordSalt = string.Empty;
+            bool isActive = true;
+            DateTime? createdDate = null;
+            int? createdByUserID = null;
+            DateTime? updatedDate = null;
+            int? updatedByUserID = null;
+
+            bool found = clsUserData.GetUserInfoByUserName(userName, ref userID, ref personID, ref dbUserName, ref passwordHash, ref passwordSalt, ref isActive, ref createdDate, ref createdByUserID, ref updatedDate, ref updatedByUserID);
+            if (found)
+                return new clsUser(userID, personID, dbUserName, passwordHash, passwordSalt, isActive, createdDate, createdByUserID, updatedDate, updatedByUserID);
+            else
+                return null;
+        }
+
         public bool Save()
         {
             switch (Mode)
@@ -126,6 +147,50 @@ namespace RMS_Business
         public static bool DeleteUser(int userID, int? updatedByUserID = null)
         {
             return clsUserData.DeleteUser(userID, updatedByUserID);
+        }
+
+        public static bool IsUserNameExists(string userName, int? excludeUserId = null)
+        {
+            return clsUserData.IsUserNameExists(userName, excludeUserId);
+        }
+
+        public static DataTable GetAllUsers()
+        {
+            return clsUserData.GetAllUsers();
+        }
+
+        public static DataTable SearchUserPages(UserSearchCriteria criteria)
+        {
+            return clsUserData.SearchUserPages(criteria.ToDataAccessCriteria());
+        }
+
+        public class UserSearchCriteria
+        {
+            public string? SearchText { get; set; }
+            public string SearchBy { get; set; } = "UserName"; // UserID, UserName, FullName, IsActive
+            public bool? IsActive { get; set; }                  // null for all
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+            public string SortBy { get; set; } = "UserName";   // UserID, UserName, FullName, IsActive
+
+            public clsUserData.UserSearchCriteria ToDataAccessCriteria()
+            {
+                return new clsUserData.UserSearchCriteria
+                {
+                    SearchText = this.SearchText,
+                    SearchBy = this.SearchBy,
+                    IsActive = this.IsActive,
+                    PageNumber = this.PageNumber,
+                    PageSize = this.PageSize,
+                    SortBy = this.SortBy
+                };
+            }
+
+            public bool IsDefault()
+            {
+                return string.IsNullOrEmpty(SearchText) && !IsActive.HasValue
+                    && PageNumber == 1 && PageSize == 20;
+            }
         }
     }
 }

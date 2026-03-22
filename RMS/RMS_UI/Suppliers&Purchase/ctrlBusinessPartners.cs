@@ -113,6 +113,32 @@ namespace RMS_UI.Suppliers_Purchase
             }
         }
 
+        public void LoadPerson(int? personID)
+        {
+            Partner = enBusinessPartners.Person;
+
+            if (!personID.HasValue || personID.Value <= 0)
+            {
+                ctrlPersonCardWithConfig1.LoadPerson(null);
+                return;
+            }
+
+            ctrlPersonCardWithConfig1.LoadPerson(clsPerson.Find(personID.Value));
+        }
+
+        public void LoadCompany(int? companyID)
+        {
+            Partner = enBusinessPartners.Company;
+
+            if (!companyID.HasValue || companyID.Value <= 0)
+            {
+                ctrlCompanyCardWithConfig1.LoadCompany(-1);
+                return;
+            }
+
+            ctrlCompanyCardWithConfig1.LoadCompany(companyID.Value);
+        }
+
 
         [Browsable(true)]
         [DefaultValue(true)]

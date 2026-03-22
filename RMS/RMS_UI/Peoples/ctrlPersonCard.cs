@@ -99,9 +99,12 @@ namespace RMS_UI.Controls
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(_person?.ImagePath) && System.IO.File.Exists(_person.ImagePath))
+                _picPersonImage.BackgroundImage?.Dispose();
+
+                if (!string.IsNullOrWhiteSpace(_person?.ImagePath))
                 {
-                    _picPersonImage.BackgroundImage = Image.FromFile(_person.ImagePath);
+                    var image = ImageManager.LoadImage(_person.ImagePath);
+                    _picPersonImage.BackgroundImage = image ?? CreatePlaceholderImage();
                 }
                 else
                 {

@@ -82,9 +82,11 @@ namespace RMS_UI.Suppliers_Purchase
             {
                 case clsSupplier.enSupplier.Person:
                     _rbPerson.Checked = true;
+                    _ctrlBusinessPartners.LoadPerson(_supplier.PersonID);
                     break;
                 case clsSupplier.enSupplier.Company:
                     _rbCompany.Checked = true;
+                    _ctrlBusinessPartners.LoadCompany(_supplier.CompanyID);
                     break;
                 default:
                     _rbPerson.Checked = false;
