@@ -35,6 +35,7 @@ namespace RMS_UI.Views
             btnSettings = new Button();
             btnReports = new Button();
             btnSuppliers = new Button();
+            btnCustomers = new Button();
             btnProducts = new Button();
             btnPOS = new Button();
             btnDashboard = new Button();
@@ -55,6 +56,7 @@ namespace RMS_UI.Views
             sidebarPanel.Controls.Add(btnSettings);
             sidebarPanel.Controls.Add(btnReports);
             sidebarPanel.Controls.Add(btnSuppliers);
+            sidebarPanel.Controls.Add(btnCustomers);
             sidebarPanel.Controls.Add(btnProducts);
             sidebarPanel.Controls.Add(btnPOS);
             sidebarPanel.Controls.Add(btnDashboard);
@@ -77,7 +79,7 @@ namespace RMS_UI.Views
             btnSettings.Font = new Font("Segoe UI", 15.75F);
             btnSettings.ForeColor = Color.FromArgb(51, 65, 85);
             btnSettings.ImageAlign = ContentAlignment.MiddleLeft;
-            btnSettings.Location = new Point(0, 400);
+            btnSettings.Location = new Point(0, 460);
             btnSettings.Margin = new Padding(2);
             btnSettings.Name = "btnSettings";
             btnSettings.Padding = new Padding(16, 0, 0, 0);
@@ -99,7 +101,7 @@ namespace RMS_UI.Views
             btnReports.Font = new Font("Segoe UI", 15.75F);
             btnReports.ForeColor = Color.FromArgb(51, 65, 85);
             btnReports.ImageAlign = ContentAlignment.MiddleLeft;
-            btnReports.Location = new Point(0, 340);
+            btnReports.Location = new Point(0, 400);
             btnReports.Margin = new Padding(2);
             btnReports.Name = "btnReports";
             btnReports.Padding = new Padding(16, 0, 0, 0);
@@ -121,7 +123,7 @@ namespace RMS_UI.Views
             btnSuppliers.Font = new Font("Segoe UI", 15.75F);
             btnSuppliers.ForeColor = Color.FromArgb(51, 65, 85);
             btnSuppliers.ImageAlign = ContentAlignment.MiddleLeft;
-            btnSuppliers.Location = new Point(0, 280);
+            btnSuppliers.Location = new Point(0, 340);
             btnSuppliers.Margin = new Padding(2);
             btnSuppliers.Name = "btnSuppliers";
             btnSuppliers.Padding = new Padding(16, 0, 0, 0);
@@ -131,6 +133,28 @@ namespace RMS_UI.Views
             btnSuppliers.Text = "🚚  Suppliers";
             btnSuppliers.TextAlign = ContentAlignment.MiddleLeft;
             btnSuppliers.UseVisualStyleBackColor = false;
+            // 
+            // btnCustomers
+            // 
+            btnCustomers.BackColor = Color.Transparent;
+            btnCustomers.Cursor = Cursors.Hand;
+            btnCustomers.Dock = DockStyle.Top;
+            btnCustomers.FlatAppearance.BorderSize = 0;
+            btnCustomers.FlatAppearance.MouseOverBackColor = Color.FromArgb(219, 234, 254);
+            btnCustomers.FlatStyle = FlatStyle.Flat;
+            btnCustomers.Font = new Font("Segoe UI", 15.75F);
+            btnCustomers.ForeColor = Color.FromArgb(51, 65, 85);
+            btnCustomers.ImageAlign = ContentAlignment.MiddleLeft;
+            btnCustomers.Location = new Point(0, 280);
+            btnCustomers.Margin = new Padding(2);
+            btnCustomers.Name = "btnCustomers";
+            btnCustomers.Padding = new Padding(16, 0, 0, 0);
+            btnCustomers.Size = new Size(260, 60);
+            btnCustomers.TabIndex = 3;
+            btnCustomers.Tag = "👥";
+            btnCustomers.Text = "👥  Customers";
+            btnCustomers.TextAlign = ContentAlignment.MiddleLeft;
+            btnCustomers.UseVisualStyleBackColor = false;
             // 
             // btnProducts
             // 
@@ -304,6 +328,7 @@ namespace RMS_UI.Views
         private System.Windows.Forms.Label lblSidebarTitle;
         private System.Windows.Forms.Button btnDashboard;
         private System.Windows.Forms.Button btnProducts;
+        private System.Windows.Forms.Button btnCustomers;
         private System.Windows.Forms.Button btnReports;
         private System.Windows.Forms.Button btnSuppliers;
         private System.Windows.Forms.Button btnSettings;

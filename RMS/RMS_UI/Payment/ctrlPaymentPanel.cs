@@ -125,7 +125,7 @@ namespace RMS_UI.Payment
 
         private void _btnAddPayment_Click(object sender, EventArgs e)
         {
-            decimal remaining = TotalAmount - GetTotalPaid();
+            decimal remaining = _GetRemainingAmount();
             if (remaining <= 0)
             {
                 MessageBox.Show("The invoice is fully paid. No more payments can be added.",
@@ -136,46 +136,34 @@ namespace RMS_UI.Payment
             using var frm = new frmAddEditPayment(remaining);
             if (frm.ShowDialog() == DialogResult.OK && frm.SavedPayment != null)
             {
-                var payment = frm.SavedPayment;
-
-                if (IsPendingMode)
-                {
-                    _pendingPayments.Add(payment);
-                    _displayRows.Add(new PaymentRow
-                    {
-                        PaymentID = -1,
-                        AllocationID = -1,
-                        Date = payment.PaymentDate,
-                        MethodName = _GetMethodName(payment.PaymentMethodID),
-                        Amount = payment.PaymentAmount,
-                        Notes = payment.Notes ?? ""
-                    });
-                    _RefreshGrid();
-                    RefreshSummary();
-                }
-                else
-                {
-                    // Persisted mode — save to DB immediately
-                    payment.Allocations.Clear();
-                    payment.Allocations.Add(new clsPaymentAllocation
-                    {
-                        TransactionID = TransactionID,
-                        Amount = payment.PaymentAmount
-                    });
-
-                    if (payment.Save())
-                    {
-                        LoadPayments(); // reload from DB
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to save the payment.", "Error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-
-                PaidAmountChanged?.Invoke(this, EventArgs.Empty);
+                if (_TryApplyPayment(frm.SavedPayment))
+                    PaidAmountChanged?.Invoke(this, EventArgs.Empty);
             }
+        }
+
+        private void _btnPayFull_Click(object sender, EventArgs e)
+        {
+            decimal remaining = _GetRemainingAmount();
+            if (remaining <= 0)
+                return;
+
+            if (!_TryResolveDefaultCashMethodID(out int paymentMethodID))
+            {
+                MessageBox.Show("No payment method is available for quick full payment.",
+                    "Payment Method Missing", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var payment = new clsPayment
+            {
+                PaymentDate = DateTime.Now,
+                PaymentAmount = remaining,
+                PaymentMethodID = paymentMethodID,
+                CreatedByUserID = clsGlobalUser.CurrentUser?.UserID
+            };
+
+            if (_TryApplyPayment(payment))
+                PaidAmountChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void _btnEditPayment_Click(object sender, EventArgs e)
@@ -299,6 +287,8 @@ namespace RMS_UI.Payment
             _lblRemainingValue.ForeColor = remaining > 0
                 ? Color.FromArgb(234, 88, 12)   // orange
                 : Color.FromArgb(22, 163, 74);   // green
+
+            _btnPayFull.Enabled = remaining > 0;
         }
 
         // ── Theme ─────────────────────────────────────────────────────────────
@@ -329,6 +319,11 @@ namespace RMS_UI.Payment
             _btnDeletePayment.BackColor = Color.FromArgb(254, 226, 226);
             _btnDeletePayment.ForeColor = Color.FromArgb(220, 38, 38);
             _btnDeletePayment.FlatAppearance.BorderColor = Color.FromArgb(252, 165, 165);
+
+            _btnPayFull.BackColor = Color.FromArgb(220, 252, 231);
+            _btnPayFull.ForeColor = Color.FromArgb(22, 101, 52);
+            _btnPayFull.FlatAppearance.BorderColor = Color.FromArgb(134, 239, 172);
+            _btnPayFull.FlatAppearance.MouseOverBackColor = Color.FromArgb(187, 247, 208);
 
             // DataGridView
             _dgvPayments.BackgroundColor = c.ContentBackground;
@@ -369,6 +364,100 @@ namespace RMS_UI.Payment
             }
             catch { }
             return $"Method #{methodID}";
+        }
+
+        private decimal _GetRemainingAmount()
+        {
+            decimal remaining = TotalAmount - GetTotalPaid();
+            return remaining > 0 ? remaining : 0;
+        }
+
+        private bool _TryApplyPayment(clsPayment payment)
+        {
+            if (IsPendingMode)
+            {
+                _pendingPayments.Add(payment);
+                _displayRows.Add(new PaymentRow
+                {
+                    PaymentID = -1,
+                    AllocationID = -1,
+                    Date = payment.PaymentDate,
+                    MethodName = _GetMethodName(payment.PaymentMethodID),
+                    Amount = payment.PaymentAmount,
+                    Notes = payment.Notes ?? ""
+                });
+                _RefreshGrid();
+                RefreshSummary();
+                return true;
+            }
+
+            // Persisted mode — save to DB immediately
+            payment.Allocations.Clear();
+            payment.Allocations.Add(new clsPaymentAllocation
+            {
+                TransactionID = TransactionID,
+                Amount = payment.PaymentAmount
+            });
+
+            if (payment.Save())
+            {
+                LoadPayments(); // reload from DB
+                return true;
+            }
+
+            MessageBox.Show("Failed to save the payment.", "Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+
+        private bool _TryResolveDefaultCashMethodID(out int paymentMethodID)
+        {
+            paymentMethodID = -1;
+
+            try
+            {
+                DataTable dt = clsPaymentMethod.GetAllPaymentMethod();
+                if (dt.Rows.Count == 0)
+                    return false;
+
+                // Prefer a method named "Cash" to support a one-click full payment flow.
+                foreach (DataRow row in dt.Rows)
+                {
+                    string methodName = row["MethodName"]?.ToString() ?? string.Empty;
+                    if (!string.Equals(methodName, "Cash", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (!IsPendingMode && !_IsMethodAllowedForImmediateSave(row))
+                        continue;
+
+                    paymentMethodID = Convert.ToInt32(row["PaymentMethodID"]);
+                    return paymentMethodID > 0;
+                }
+
+                // Fallback to first method when Cash is unavailable.
+                foreach (DataRow row in dt.Rows)
+                {
+                    if (!IsPendingMode && !_IsMethodAllowedForImmediateSave(row))
+                        continue;
+
+                    paymentMethodID = Convert.ToInt32(row["PaymentMethodID"]);
+                    return paymentMethodID > 0;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        private bool _IsMethodAllowedForImmediateSave(DataRow row)
+        {
+            if (row.Table.Columns.Contains("IsActiveForPurchases")
+                && row["IsActiveForPurchases"] != DBNull.Value)
+            {
+                return Convert.ToBoolean(row["IsActiveForPurchases"]);
+            }
+
+            return true;
         }
 
         // ── Display DTO ───────────────────────────────────────────────────────

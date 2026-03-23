@@ -669,13 +669,19 @@ CREATE TABLE Customers (
     CreatedByUserID INT           NULL,
     UpdatedDate  DATETIME         DEFAULT GETDATE(),
     UpdatedByUserID INT           NULL,
+    IsDeleted    BIT              DEFAULT 0,
 
     CONSTRAINT PK_Customers PRIMARY KEY CLUSTERED (CustomerID),
     CONSTRAINT FK_Customers_People    FOREIGN KEY (PersonID)  REFERENCES People(PersonID),
     CONSTRAINT FK_Customers_Companies FOREIGN KEY (CompanyID) REFERENCES Companies(CompanyID),
     CONSTRAINT FK_Customers_Accounts  FOREIGN KEY (AccountID) REFERENCES Accounts(AccountID),
     CONSTRAINT FK_Customers_CreatedBy FOREIGN KEY (CreatedByUserID) REFERENCES Users(UserID),
-    CONSTRAINT FK_Customers_UpdatedBy FOREIGN KEY (UpdatedByUserID) REFERENCES Users(UserID)
+    CONSTRAINT FK_Customers_UpdatedBy FOREIGN KEY (UpdatedByUserID) REFERENCES Users(UserID),
+    CONSTRAINT CK_Customers_PersonOrCompany
+        CHECK (
+            (PersonID IS NOT NULL AND CompanyID IS NULL)
+            OR (PersonID IS NULL AND CompanyID IS NOT NULL)
+        )
 );
 
 

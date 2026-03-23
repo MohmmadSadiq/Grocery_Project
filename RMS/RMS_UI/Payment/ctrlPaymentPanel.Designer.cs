@@ -32,6 +32,7 @@ namespace RMS_UI.Payment
             _btnAddPayment = new Button();
             _btnEditPayment = new Button();
             _btnDeletePayment = new Button();
+            _btnPayFull = new Button();
             _dgvPayments = new DataGridView();
             _pnlSummary = new Panel();
             _lblTotalLabel = new Label();
@@ -113,6 +114,19 @@ namespace RMS_UI.Payment
             _btnDeletePayment.Cursor = Cursors.Hand;
             _btnDeletePayment.Click += _btnDeletePayment_Click;
 
+            // _btnPayFull
+            _btnPayFull.Text = "Pay Full";
+            _btnPayFull.Size = new Size(100, 30);
+            _btnPayFull.Location = new Point(318, 6);
+            _btnPayFull.FlatStyle = FlatStyle.Flat;
+            _btnPayFull.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            _btnPayFull.BackColor = Color.FromArgb(220, 252, 231);
+            _btnPayFull.ForeColor = Color.FromArgb(22, 101, 52);
+            _btnPayFull.FlatAppearance.BorderColor = Color.FromArgb(134, 239, 172);
+            _btnPayFull.Cursor = Cursors.Hand;
+            _btnPayFull.Click += _btnPayFull_Click;
+
+            _pnlPaymentButtons.Controls.Add(_btnPayFull);
             _pnlPaymentButtons.Controls.Add(_btnDeletePayment);
             _pnlPaymentButtons.Controls.Add(_btnEditPayment);
             _pnlPaymentButtons.Controls.Add(_btnAddPayment);
@@ -218,6 +232,7 @@ namespace RMS_UI.Payment
         private Button _btnAddPayment;
         private Button _btnEditPayment;
         private Button _btnDeletePayment;
+        private Button _btnPayFull;
         private DataGridView _dgvPayments;
         private Panel _pnlSummary;
         private Label _lblTotalLabel;
