@@ -6,6 +6,16 @@ namespace RMS_DataAccess
 {
     public class clsEmployeeData
     {
+        public class EmployeeSearchCriteria
+        {
+            public string SearchText { get; set; } = "";
+            public string SearchBy { get; set; } = "FullName";
+            public int? PositionID { get; set; }
+            public int? CountryID { get; set; }
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+        }
+
         public static bool GetEmployeeByID(int EmployeeID, ref int PersonID, ref int PositionID, ref DateTime HireDate, ref DateTime? FireDate, ref int CreatedByUserID, ref DateTime CreatedDate, ref int UpdatedByUserID, ref DateTime UpdatedDate)
         {
             bool isFound = false;
@@ -151,6 +161,66 @@ namespace RMS_DataAccess
                     }
                 }
             }
+            return dt;
+        }
+
+        public static DataTable SearchEmployeesPages(EmployeeSearchCriteria criteria, ref int totalCount)
+        {
+            totalCount = 0;
+            DataTable dt = new DataTable();
+
+            // Ensure search always has valid defaults even when caller passes null.
+            criteria ??= new EmployeeSearchCriteria();
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("sp_SearchEmployeesPages", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.Add("@SearchText", SqlDbType.NVarChar, 100).Value =
+                        string.IsNullOrWhiteSpace(criteria.SearchText) ? DBNull.Value : criteria.SearchText.Trim();
+
+                    command.Parameters.Add("@SearchBy", SqlDbType.NVarChar, 50).Value =
+                        string.IsNullOrWhiteSpace(criteria.SearchBy) ? "FullName" : criteria.SearchBy;
+
+                    command.Parameters.Add("@PositionID", SqlDbType.Int).Value =
+                        (criteria.PositionID.HasValue && criteria.PositionID.Value > 0) ? criteria.PositionID.Value : DBNull.Value;
+
+                    command.Parameters.Add("@CountryID", SqlDbType.Int).Value =
+                        (criteria.CountryID.HasValue && criteria.CountryID.Value > 0) ? criteria.CountryID.Value : DBNull.Value;
+
+                    command.Parameters.Add("@PageNumber", SqlDbType.Int).Value =
+                        criteria.PageNumber > 0 ? criteria.PageNumber : 1;
+
+                    command.Parameters.Add("@PageSize", SqlDbType.Int).Value =
+                        criteria.PageSize > 0 ? criteria.PageSize : 20;
+
+                    SqlParameter totalCountOutput = new SqlParameter("@TotalCount", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    command.Parameters.Add(totalCountOutput);
+
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                                dt.Load(reader);
+                        }
+
+                        if (totalCountOutput.Value != DBNull.Value)
+                            totalCount = (int)totalCountOutput.Value;
+                    }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
+                }
+            }
+
             return dt;
         }
     }

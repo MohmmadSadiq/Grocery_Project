@@ -5,6 +5,16 @@ namespace RMS_Business
 {
     public class clsEmployee
     {
+        public class EmployeeSearchCriteria
+        {
+            public string SearchText { get; set; } = "";
+            public string SearchBy { get; set; } = "FullName";
+            public int? PositionID { get; set; }
+            public int? CountryID { get; set; }
+            public int PageNumber { get; set; } = 1;
+            public int PageSize { get; set; } = 20;
+        }
+
         public enum enMode { AddNew = 0, Update = 1 };
         public enMode Mode = enMode.AddNew;
         public int EmployeeID { get; set; }
@@ -76,6 +86,23 @@ namespace RMS_Business
         public static DataTable GetAllEmployee()
         {
             return clsEmployeeData.GetAllEmployee();
+        }
+
+        public static DataTable SearchEmployeesPages(EmployeeSearchCriteria criteria, ref int totalCount)
+        {
+            criteria ??= new EmployeeSearchCriteria();
+
+            clsEmployeeData.EmployeeSearchCriteria dataCriteria = new clsEmployeeData.EmployeeSearchCriteria
+            {
+                SearchText = criteria.SearchText,
+                SearchBy = criteria.SearchBy,
+                PositionID = criteria.PositionID,
+                CountryID = criteria.CountryID,
+                PageNumber = criteria.PageNumber,
+                PageSize = criteria.PageSize
+            };
+
+            return clsEmployeeData.SearchEmployeesPages(dataCriteria, ref totalCount);
         }
     }
 }

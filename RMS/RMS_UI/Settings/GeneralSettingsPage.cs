@@ -29,6 +29,7 @@ namespace RMS_UI.Settings
         private Panel _cardProductSettings = null!;
         private Panel _cardUserSettings = null!;
         private Panel _cardUsersPage = null!;
+        private Panel _cardEmployeesPage = null!;
         private Panel _cardCompanyInfo = null!;
         #endregion
 
@@ -124,6 +125,14 @@ namespace RMS_UI.Settings
                 true,
                 () => OpenUserManagement());
 
+            _cardEmployeesPage = CreateSettingsCard(
+                "🧑‍💼", "Employees Page",
+                "Manage employees list\nwith position and country",
+                GetEmployeeCount,
+                "employees",
+                true,
+                () => OpenEmployeeManagement());
+
             _cardCompanyInfo = CreateSettingsCard(
                 "🏢", "Company Info",
                 "Business information\nand branding",
@@ -136,6 +145,7 @@ namespace RMS_UI.Settings
             _cardsContainer.Controls.Add(_cardProductSettings);
             _cardsContainer.Controls.Add(_cardUserSettings);
             _cardsContainer.Controls.Add(_cardUsersPage);
+            _cardsContainer.Controls.Add(_cardEmployeesPage);
             _cardsContainer.Controls.Add(_cardCompanyInfo);
 
             // Add controls (reverse dock order)
@@ -357,6 +367,33 @@ namespace RMS_UI.Settings
             dialog.ShowDialog(this.FindForm());
         }
 
+        private void OpenEmployeeManagement()
+        {
+            MainPage? mainPage = FindParentMainPage();
+            if (mainPage != null)
+            {
+                mainPage.LoadContent(new EmployeePage());
+                return;
+            }
+
+            using var dialog = new Form
+            {
+                Text = "Employees Management",
+                StartPosition = FormStartPosition.CenterParent,
+                Size = new Size(1200, 760),
+                MinimizeBox = false,
+                MaximizeBox = false
+            };
+
+            var employeesPage = new EmployeePage
+            {
+                Dock = DockStyle.Fill
+            };
+
+            dialog.Controls.Add(employeesPage);
+            dialog.ShowDialog(this.FindForm());
+        }
+
         private MainPage? FindParentMainPage()
         {
             Control? current = this;
@@ -439,6 +476,27 @@ namespace RMS_UI.Settings
                 }
 
                 return users.Rows.Count;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        private int GetEmployeeCount()
+        {
+            try
+            {
+                var criteria = new clsEmployee.EmployeeSearchCriteria
+                {
+                    PageNumber = 1,
+                    PageSize = 1,
+                    SearchBy = "FullName"
+                };
+
+                int totalCount = 0;
+                _ = clsEmployee.SearchEmployeesPages(criteria, ref totalCount);
+                return totalCount;
             }
             catch
             {

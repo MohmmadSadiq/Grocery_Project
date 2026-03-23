@@ -291,3 +291,28 @@ BEGIN
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 END;
 GO
+
+
+
+CREATE OR ALTER PROCEDURE dbo.spGetUserInfoByUserName
+    @UserName NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        UserID,
+        PersonID,
+        UserName,
+        PasswordHash,
+        PasswordSalt,
+        IsActive,
+        CreatedDate,
+        CreatedByUserID,
+        UpdatedDate,
+        UpdatedByUserID
+    FROM dbo.Users
+    WHERE UserName = @UserName
+      AND (IsDeleted = 0 OR IsDeleted IS NULL);
+END;
+GO

@@ -42,6 +42,15 @@
     <Compile Update="Users\UsersPage.Designer.cs">
       <DependentUpon>UsersPage.cs</DependentUpon>
     </Compile>
+    <Compile Update="Employees\EmployeePage.Designer.cs">
+      <DependentUpon>EmployeePage.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Employees\Controls\ctrlAddEditEmployee.Designer.cs">
+      <DependentUpon>ctrlAddEditEmployee.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Employees\frmAddEditEmployee.Designer.cs">
+      <DependentUpon>frmAddEditEmployee.cs</DependentUpon>
+    </Compile>
     <Compile Update="Users\ctrlAddEditUser.Designer.cs">
       <DependentUpon>ctrlAddEditUser.cs</DependentUpon>
     </Compile>
