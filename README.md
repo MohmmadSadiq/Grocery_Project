@@ -6,9 +6,9 @@ A modern desktop Retail Management System built with C#, WinForms, and SQL Serve
 
 Watch the full system walkthrough:
 
-- [Watch Full Video Overview on YouTube](https://youtu.be/OehyI2WHTDw)
+[![Watch RMS Overview Video](https://img.youtube.com/vi/OehyI2WHTDw/hqdefault.jpg)](https://youtu.be/OehyI2WHTDw)
 
-If inline preview is not available in your GitHub client, open the link directly in your browser.
+Click the preview image to open the full video on YouTube.
 
 ## From Simple Grocery Project to RMS
 
