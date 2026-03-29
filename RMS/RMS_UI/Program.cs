@@ -20,7 +20,10 @@ namespace RMS_UI
             using frmLogin loginForm = new frmLogin();
             if (loginForm.ShowDialog() == DialogResult.OK)
             {
-                Application.Run(new MainForm());
+                Application.Run(new MainForm
+                {
+                    WindowState = FormWindowState.Maximized
+                });
             }
         }
     }

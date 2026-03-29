@@ -1,37 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using RMS_Business;
 
 internal class Program
 {
-    private static void Main()
+    private static void Main(string[] args)
     {
-        Console.WriteLine("=== Testing clsPayment Full Application ===\n");
-
-        // 0. Testing Add Transactions first
-        TestAddTransactions();
-
-        Console.WriteLine("\n" + new string('=', 80) + "\n");
-
-        // 1. Testing Add with Allocations (using created transactions)
-        TestAddPaymentWithAllocations();
-
-        Console.WriteLine("\n" + new string('=', 80) + "\n");
-
-        // 2. Testing Read and Details
-        TestReadPayment();
-
-        Console.WriteLine("\n" + new string('=', 80) + "\n");
-
-        // 3. Testing Update
-        TestUpdatePayment();
-
-        Console.WriteLine("\n" + new string('=', 80) + "\n");
-
-        // 4. Testing Delete
-        TestDeletePayment();
-
-        Console.WriteLine("\n=== Test Completed ===");
+        PermissionSeedValidator.Run();
     }
 
     private static void TestAddTransactions()
